@@ -34,6 +34,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 #include <libusb-1.0/libusb.h>
 
 #define RKFLASHTOOL_VER_MAJOR   2
@@ -114,7 +115,7 @@ static void send_cmd(libusb_device_handle *h, int e, uint8_t flag,
 int main(int argc, char **argv) {
     libusb_context *c;
     libusb_device_handle *h;
-    int offset = 0, size = 0;
+    int offset = 0, size = 0, rc = 0;
     char action;
 
     NEXT; if (!argc) usage();
@@ -175,7 +176,8 @@ int main(int argc, char **argv) {
             recv_buf(h, 1, RKFT_BLOCKSIZE);
             recv_res(h, 1);
 
-            write(1, buf, RKFT_BLOCKSIZE);
+            if ((rc = write(1, buf, RKFT_BLOCKSIZE)) < 0)
+                fatal("error writing buffer to stdout: %s\n", strerror(errno));
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
         }
@@ -187,7 +189,8 @@ int main(int argc, char **argv) {
                 info("writing flash memory at offset 0x%08x\r", offset);
 
             memset(buf, 0, RKFT_BLOCKSIZE);
-            read(0, buf, RKFT_BLOCKSIZE);
+            /* for now we ignore here errors from read() */
+            rc = read(0, buf, RKFT_BLOCKSIZE);
 
             send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
             send_buf(h, 2, RKFT_BLOCKSIZE);
