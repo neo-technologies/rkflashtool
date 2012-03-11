@@ -41,6 +41,8 @@
 #define RKFT_BLOCKSIZE  0x4000                  /* must be multiple of 512 */
 #define RKFT_OFF_INCR   (RKFT_BLOCKSIZE>>9)
 
+#define RKFT_FILLBYTE   0xff
+
 #define RKFT_CID        4
 #define RKFT_FLAG       12
 #define RKFT_COMMAND    13
@@ -75,9 +77,10 @@ static void info_and_fatal(const int s, char *f, ...) {
 static void usage(void) {
     fatal("usage:\n"
           "\trkflashtool b                   \treboot device\n"
+          "\trkflashtool e offset size       \terase flash (fill with 0x%02x)\n"
           "\trkflashtool r offset size >file \tread flash\n"
           "\trkflashtool w offset size <file \twrite flash\n\n"
-          "\toffset and size are in units of 512 bytes\n");
+          "\toffset and size are in units of 512 bytes\n", RKFT_FILLBYTE);
 }
 
 static void send_cmd(libusb_device_handle *h, int e, uint8_t flag,
@@ -114,8 +117,8 @@ int main(int argc, char **argv) {
     action = **argv; NEXT;
 
     switch(action) {
-    case 'b':           if (argc   ) usage(); break;
-    case 'r': case 'w': if (argc!=2) usage();
+    case 'b':                     if (argc   ) usage(); break;
+    case 'e': case 'r': case 'w': if (argc!=2) usage();
         offset = strtoul(argv[0], NULL, 0);
         size   = strtoul(argv[1], NULL, 0);
         break;
@@ -169,6 +172,19 @@ int main(int argc, char **argv) {
 
             memset(buf, 0, RKFT_BLOCKSIZE);
             read(0, buf, RKFT_BLOCKSIZE);
+
+            send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
+            send_buf(h, 2, RKFT_BLOCKSIZE);
+            recv_res(h, 1);
+
+            offset += RKFT_OFF_INCR;
+            size   -= RKFT_OFF_INCR;
+        }
+        break;
+    case 'e':
+        memset(buf, RKFT_FILLBYTE, RKFT_BLOCKSIZE);
+        while (size>0) {
+            info("erasing flash memory at offset 0x%08x\r", offset);
 
             send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
             send_buf(h, 2, RKFT_BLOCKSIZE);
