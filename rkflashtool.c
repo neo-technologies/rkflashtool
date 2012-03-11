@@ -37,6 +37,12 @@
 #include <errno.h>
 #include <libusb-1.0/libusb.h>
 
+/* hack to set binary mode for stdin / stdout on Windows */
+#ifdef _WIN32
+#include <fcntl.h>
+int _CRT_fmode = _O_BINARY;
+#endif
+
 #define RKFLASHTOOL_VER_MAJOR   2
 #define RKFLASHTOOL_VER_MINOR   1
 
