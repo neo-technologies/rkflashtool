@@ -41,6 +41,10 @@
 #define RKFT_BLOCKSIZE  0x4000                  /* must be multiple of 512 */
 #define RKFT_OFF_INCR   (RKFT_BLOCKSIZE>>9)
 
+#ifndef RKFT_DISPLAY
+#define RKFT_DISPLAY    0x100
+#endif
+
 #define RKFT_FILLBYTE   0xff
 
 #define RKFT_CID        4
@@ -155,7 +159,8 @@ int main(int argc, char **argv) {
         break;
     case 'r':
         while (size>0) {
-            info("reading flash memory at offset 0x%08x\n", offset);
+            if (offset % RKFT_DISPLAY == 0)
+                info("reading flash memory at offset 0x%08x\r", offset);
 
             send_cmd(h, 2, 0x80, 0x000a1400, offset, RKFT_OFF_INCR);
             recv_buf(h, 1, RKFT_BLOCKSIZE);
@@ -165,10 +170,12 @@ int main(int argc, char **argv) {
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
         }
+        fprintf(stderr, "\n");
         break;
     case 'w':
         while (size>0) {
-            info("writing flash memory at offset 0x%08x\n", offset);
+            if (offset % RKFT_DISPLAY == 0)
+                info("writing flash memory at offset 0x%08x\r", offset);
 
             memset(buf, 0, RKFT_BLOCKSIZE);
             read(0, buf, RKFT_BLOCKSIZE);
@@ -180,11 +187,13 @@ int main(int argc, char **argv) {
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
         }
+        fprintf(stderr, "\n");
         break;
     case 'e':
         memset(buf, RKFT_FILLBYTE, RKFT_BLOCKSIZE);
         while (size>0) {
-            info("erasing flash memory at offset 0x%08x\r", offset);
+            if (offset % RKFT_DISPLAY == 0)
+                info("erasing flash memory at offset 0x%08x\r", offset);
 
             send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
             send_buf(h, 2, RKFT_BLOCKSIZE);
@@ -193,6 +202,7 @@ int main(int argc, char **argv) {
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
         }
+        fprintf(stderr, "\n");
         break;
     default:
         break;
