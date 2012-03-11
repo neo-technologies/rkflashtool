@@ -36,7 +36,8 @@
 #include <string.h>
 #include <libusb-1.0/libusb.h>
 
-#define RKFLASHTOOL_VERSION     2
+#define RKFLASHTOOL_VER_MAJOR   2
+#define RKFLASHTOOL_VER_MINOR   1
 
 #define RKFT_BLOCKSIZE  0x4000                  /* must be multiple of 512 */
 #define RKFT_OFF_INCR   (RKFT_BLOCKSIZE>>9)
@@ -121,10 +122,18 @@ int main(int argc, char **argv) {
     action = **argv; NEXT;
 
     switch(action) {
-    case 'b':                     if (argc   ) usage(); break;
-    case 'e': case 'r': case 'w': if (argc!=2) usage();
+    case 'b':
+        if (argc) usage();
+        break;
+    case 'e': case 'r': case 'w':
+        if (argc!=2) usage();
         offset = strtoul(argv[0], NULL, 0);
         size   = strtoul(argv[1], NULL, 0);
+        break;
+    case 'v': case 'V':
+        printf("rkflashtool version %d.%d\n",
+               RKFLASHTOOL_VER_MAJOR, RKFLASHTOOL_VER_MINOR);
+        exit(0);
         break;
     default:
         usage();
