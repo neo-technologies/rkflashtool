@@ -182,6 +182,7 @@ int main(int argc, char **argv) {
             recv_buf(h, 1, RKFT_BLOCKSIZE);
             recv_res(h, 1);
 
+            /* check for write() errors to catch disk-full, no-perms, etc. */
             if (write(1, buf, RKFT_BLOCKSIZE) < 0)
                 fatal("error writing buffer to stdout: %s\n", strerror(errno));
             offset += RKFT_OFF_INCR;
@@ -195,8 +196,8 @@ int main(int argc, char **argv) {
                 info("writing flash memory at offset 0x%08x\r", offset);
 
             memset(buf, 0, RKFT_BLOCKSIZE);
-            /* for now we ignore here errors from read() */
-            (void)read(0, buf, RKFT_BLOCKSIZE);
+            /* we ignore here read() errors and pad up to given size */
+            if (read(0, buf, RKFT_BLOCKSIZE) < 0) {};
 
             send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
             send_buf(h, 2, RKFT_BLOCKSIZE);
