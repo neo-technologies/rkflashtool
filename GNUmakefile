@@ -31,7 +31,7 @@ VERMIN	= $(shell $(AWK) '/RKFLASHTOOL_VER_MINOR/{print $$3}' rkflashtool.c)
 VERREV	= 0
 LCOPYR	= 2011-2012 Ivo van Poorten
 FDESCR	= Flashtool for RK2808, RK2818 and RK2918 based tablets
-WWWURL	= https://sourceforge.net/projects/rkflashtool/
+WWWURL	= http://sourceforge.net/projects/rkflashtool/
 ifeq ($(findstring /sh,$(SHELL)),/sh)
 DL	= '
 endif
