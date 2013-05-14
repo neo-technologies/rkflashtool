@@ -37,12 +37,13 @@
 #include <libusb-1.0/libusb.h>
 
 #define RKFLASHTOOL_VERSION_MAJOR      2
-#define RKFLASHTOOL_VERSION_MINOR      1
+#define RKFLASHTOOL_VERSION_MINOR      2
 
 #define VID_RK          0x2207
 #define PID_RK2818      0x281a
 #define PID_RK2918      0x290a
 #define PID_RK3066      0x300a
+#define PID_RK3188      0x310b
 
 
 #define RKFT_BLOCKSIZE  0x4000                  /* must be multiple of 512 */
@@ -58,6 +59,21 @@
                       ((uint8_t*)a)[2] = (v>>8 ) & 0xff; \
                       ((uint8_t*)a)[1] = (v>>16) & 0xff; \
                       ((uint8_t*)a)[0] = (v>>24) & 0xff
+
+typedef struct {
+    uint16_t pid;
+    char     name[8];
+} t_pid;
+
+const t_pid pidtab[] = {
+    { PID_RK2818, "RK2818" },
+    { PID_RK2918, "RK2918" },
+    { PID_RK3066, "RK3066" },
+    { PID_RK3188, "RK3188" },
+    { 0, "" },
+};
+
+static const t_pid *ppid = &pidtab[0];
 
 static uint8_t cmd[31] = { 'U', 'S', 'B', 'C', };
 static uint8_t res[13];
@@ -113,7 +129,7 @@ static void send_cmd(libusb_device_handle *h, int e, uint8_t flag,
 
 int main(int argc, char **argv) {
     libusb_context *c;
-    libusb_device_handle *h;
+    libusb_device_handle *h = NULL;
     int offset = 0, size = 0;
     char action;
 
@@ -151,23 +167,24 @@ int main(int argc, char **argv) {
     
     /* Detect connected RockChip device */
     
-    if ((h = libusb_open_device_with_vid_pid(c, VID_RK, PID_RK2918)))
-        info("Detected RK2808... ");
-    else if ((h = libusb_open_device_with_vid_pid(c, VID_RK, PID_RK2818)))
-        info("Detected RK2918... ");
-    else if ((h = libusb_open_device_with_vid_pid(c, VID_RK, PID_RK3066)))
-        info("Detected RK3066");
-    else
-        fatal("cannot open device\n");
+    while ( !h && ppid->pid) {
+        h = libusb_open_device_with_vid_pid(c, VID_RK, ppid->pid);
+        if (h) {
+            info("Detected %s... ", ppid->name);
+            break;
+        }
+        ppid++;
+    } 
+    if (!h) fatal("cannot open device\n");
 
+    /* Connect to device */
+    
     if (libusb_kernel_driver_active(h, 0) == 1) {
         info("kernel driver active\n");
         if (!libusb_detach_kernel_driver(h, 0))
             info("driver detached\n");
     }
 
-    /* Connect to device */
-    
     if (libusb_claim_interface(h, 0) < 0)  
         fatal("cannot claim interface\n");
         
