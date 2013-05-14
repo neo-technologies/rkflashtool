@@ -248,17 +248,17 @@ int main(int argc, char **argv) {
     case 'p':   /* Retreive parameters */
         {
             uint32_t *p = (uint32_t*)buf;
-            
-            info("reading parameters at offset 0x%08x ", offset);
+
+            info("reading parameters at offset 0x%08x\n", offset);
 
             send_cmd(h, 2, 0x80, 0x000a1400, offset, RKFT_OFF_INCR);
             recv_buf(h, 1, RKFT_BLOCKSIZE);
             recv_res(h, 1);
-            info("crc 0x%08x ", *p++);
+            info("rkcrc: 0x%08x\n", *p++);
             size = *p;;
-            info("size 0x%08x\n", size);
+            info("size:  0x%08x\n", size);
 
-            if ( write(1, &buf[8], RKFT_BLOCKSIZE) <= 0) {
+            if ( write(1, &buf[8], size) <= 0) {
                 fatal("Write error! Disk full?\n");
                 size = 0;
             }
@@ -269,11 +269,11 @@ int main(int argc, char **argv) {
         {
             int sizeRead = size > RKFT_MEM_INCR ? RKFT_MEM_INCR : size;
             info("reading memory at offset 0x%08x size %x\n", offset, sizeRead);
-             
+
             send_cmd(h, 2, 0x80, 0x000a1700, offset-0x60000000, sizeRead);
             recv_buf(h, 1, sizeRead);
             recv_res(h, 1);
-             
+
             if ( write(1, buf, sizeRead) <= 0) {
                 fatal("Write error! Disk full?\n");
                 size = 0;
