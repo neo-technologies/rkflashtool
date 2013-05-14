@@ -39,21 +39,24 @@
 #define RKFLASHTOOL_VERSION_MAJOR      2
 #define RKFLASHTOOL_VERSION_MINOR      2
 
-#define VID_RK          0x2207
-#define PID_RK2818      0x281a
-#define PID_RK2918      0x290a
-#define PID_RK3066      0x300a
-#define PID_RK3188      0x310b
+#define VID_RK              0x2207
+#define PID_RK2818          0x281a
+#define PID_RK2918          0x290a
+#define PID_RK3066          0x300a
+#define PID_RK3188          0x310b
 
 
-#define RKFT_BLOCKSIZE  0x4000                  /* must be multiple of 512 */
-#define RKFT_OFF_INCR   (RKFT_BLOCKSIZE>>9)
+#define RKFT_BLOCKSIZE      0x4000                  /* must be multiple of 512 */
+#define RKFT_IDB_BLOCKSIZE  0x210
+#define RKFT_IDB_INCR       0x20
+#define RKFT_MEM_INCR       0x80
+#define RKFT_OFF_INCR       (RKFT_BLOCKSIZE>>9)
 
-#define RKFT_CID        4
-#define RKFT_FLAG       12
-#define RKFT_COMMAND    13
-#define RKFT_OFFSET     17
-#define RKFT_SIZE       23
+#define RKFT_CID            4
+#define RKFT_FLAG           12
+#define RKFT_COMMAND        13
+#define RKFT_OFFSET         17
+#define RKFT_SIZE           23
 
 #define SETBE32(a, v) ((uint8_t*)a)[3] =  v      & 0xff; \
                       ((uint8_t*)a)[2] = (v>>8 ) & 0xff; \
@@ -98,6 +101,8 @@ static void info_and_fatal(const int s, char *f, ...) {
 static void usage(void) {
     fatal("usage:\n"
           "\trkflashtool b                   \treboot device\n"
+          "\trkflashtool m offset size >file \tread 0x80 bytes DRAM\n"
+          "\trkflashtool i offset blocks >file \tread IDB flash\n"
           "\trkflashtool r offset size >file \tread flash\n"
           "\trkflashtool w offset size <file \twrite flash\n"
           "\trkflashtool p >file             \tfetch parameters\n\n"
@@ -145,6 +150,8 @@ int main(int argc, char **argv) {
         break;
     case 'r': 
     case 'w': 
+    case 'm':
+    case 'i':
         if (argc != 2) usage();
         offset = strtoul(argv[0], NULL, 0);
         size   = strtoul(argv[1], NULL, 0);
@@ -201,7 +208,7 @@ int main(int argc, char **argv) {
         send_cmd(h, 2, 0x00, 0x0006ff00, 0x00000000, 0x00);
         recv_res(h, 1);
         break;
-    case 'r':   /* Read FALSH */
+    case 'r':   /* Read FLASH */
         while (size > 0) 
         {
             info("reading flash memory at offset 0x%08x\n", offset);
@@ -255,6 +262,42 @@ int main(int argc, char **argv) {
                 fatal("Write error! Disk full?\n");
                 size = 0;
             }
+        }
+        break;
+    case 'm':   /* Read RAM */
+        while (size > 0) 
+        {
+            int sizeRead = size > RKFT_MEM_INCR ? RKFT_MEM_INCR : size;
+            info("reading memory at offset 0x%08x size %x\n", offset, sizeRead);
+             
+            send_cmd(h, 2, 0x80, 0x000a1700, offset-0x60000000, sizeRead);
+            recv_buf(h, 1, sizeRead);
+            recv_res(h, 1);
+             
+            if ( write(1, buf, sizeRead) <= 0) {
+                fatal("Write error! Disk full?\n");
+                size = 0;
+            }
+            offset += sizeRead;
+            size -= sizeRead;
+        }
+        break;
+    case 'i':   /* Read IDB */
+        while (size > 0) 
+        {
+            int sizeRead = size > RKFT_IDB_INCR ? RKFT_IDB_INCR : size;
+            info("reading IDB flash memory at offset 0x%08x\n", offset);
+             
+            send_cmd(h, 2, 0x80, 0x000a0400, offset, sizeRead);
+            recv_buf(h, 1, RKFT_IDB_BLOCKSIZE * sizeRead);
+            recv_res(h, 1);
+             
+            if ( write(1, buf, RKFT_IDB_BLOCKSIZE * sizeRead) <= 0) {
+                fatal("Write error! Disk full?\n");
+                size = 0;
+            }
+            offset += sizeRead;
+            size -= sizeRead;
         }
         break;
     default:
