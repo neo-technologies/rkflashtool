@@ -1,5 +1,6 @@
-/* rkflashtool - for RK2808, RK2818 and RK2918 based tablets
+/* rkflashtool - for RK2808, RK2818, RK2918 and RK3066, RK3188 based tablets
  *
+ * Copyright (C) 2012 Astralix          (cleanup, addons, new CPUs)
  * Copyright (C) 2011 Ivo van Poorten   (complete rewrite for libusb)
  * Copyright (C) 2010 FUKAUMI Naoki     (reverse engineering of protocol)
  *
@@ -36,7 +37,7 @@
 #include <string.h>
 #include <libusb-1.0/libusb.h>
 
-#define RKFLASHTOOL_VERSION_MAJOR      2
+#define RKFLASHTOOL_VERSION_MAJOR      3
 #define RKFLASHTOOL_VERSION_MINOR      2
 
 #define VID_RK              0x2207
@@ -76,7 +77,6 @@ const t_pid pidtab[] = {
     { 0, "" },
 };
 
-static const t_pid *ppid = &pidtab[0];
 
 static uint8_t cmd[31] = { 'U', 'S', 'B', 'C', };
 static uint8_t res[13];
@@ -133,6 +133,7 @@ static void send_cmd(libusb_device_handle *h, int e, uint8_t flag,
 #define NEXT do { argc--;argv++; }while(0)
 
 int main(int argc, char **argv) {
+    const t_pid *ppid = &pidtab[0];
     libusb_context *c;
     libusb_device_handle *h = NULL;
     int offset = 0, size = 0;
