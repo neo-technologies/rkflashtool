@@ -180,7 +180,7 @@ int main(int argc, char **argv) {
     while ( !h && ppid->pid) {
         h = libusb_open_device_with_vid_pid(c, VID_RK, ppid->pid);
         if (h) {
-            info("Detected %s... ", ppid->name);
+            info("Detected %s...\n", ppid->name);
             break;
         }
         ppid++;
