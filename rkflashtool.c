@@ -44,6 +44,7 @@
 #define PID_RK2818          0x281a
 #define PID_RK2918          0x290a
 #define PID_RK3066          0x300a
+#define PID_RK3168          0x300b
 #define PID_RK3188          0x310b
 
 
@@ -73,6 +74,7 @@ const t_pid pidtab[] = {
     { PID_RK2818, "RK2818" },
     { PID_RK2918, "RK2918" },
     { PID_RK3066, "RK3066" },
+    { PID_RK3168, "RK3168" },
     { PID_RK3188, "RK3188" },
     { 0, "" },
 };
@@ -178,7 +180,7 @@ int main(int argc, char **argv) {
     while ( !h && ppid->pid) {
         h = libusb_open_device_with_vid_pid(c, VID_RK, ppid->pid);
         if (h) {
-            info("Detected %s... ", ppid->name);
+            info("Detected %s...\n", ppid->name);
             break;
         }
         ppid++;
