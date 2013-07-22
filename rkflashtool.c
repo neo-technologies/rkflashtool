@@ -1,4 +1,4 @@
-/* rkflashtool - for RK2808, RK2818, RK2918 and RK3066, RK3188 based tablets
+/* rkflashtool - for RK2808, RK2818, RK2918 and RK3066, RK3188 based devices
  *
  * Copyright (C) 2012 Astralix          (cleanup, addons, new CPUs)
  * Copyright (C) 2011 Ivo van Poorten   (complete rewrite for libusb)
@@ -37,7 +37,7 @@
 #include <string.h>
 #include <libusb-1.0/libusb.h>
 
-#define RKFLASHTOOL_VERSION_MAJOR      3
+#define RKFLASHTOOL_VERSION_MAJOR      4
 #define RKFLASHTOOL_VERSION_MINOR      2
 
 #define VID_RK              0x2207
@@ -47,12 +47,17 @@
 #define PID_RK3168          0x300b
 #define PID_RK3188          0x310b
 
-
 #define RKFT_BLOCKSIZE      0x4000                  /* must be multiple of 512 */
 #define RKFT_IDB_BLOCKSIZE  0x210
 #define RKFT_IDB_INCR       0x20
 #define RKFT_MEM_INCR       0x80
 #define RKFT_OFF_INCR       (RKFT_BLOCKSIZE>>9)
+
+#ifndef RKFT_DISPLAY
+#define RKFT_DISPLAY	    0x100
+#endif
+
+#define RKFT_FILLBYTE 	    0xff
 
 #define RKFT_CID            4
 #define RKFT_FLAG           12
@@ -151,6 +156,7 @@ int main(int argc, char **argv) {
     case 'b':
         if (argc) usage(); 
         break;
+    case 'e':
     case 'r': 
     case 'w': 
     case 'm':
@@ -303,6 +309,21 @@ int main(int argc, char **argv) {
             size -= sizeRead;
         }
         break;
+    case 'e':   /* Erase flash */
+	memset(buf, RKFT_FILLBYTE, RKFT_BLOCKSIZE);
+	while (size>0) {
+		if (offset % RKFT_DISPLAY == 0)
+			info("erasing flash memory at offset 0x%08x\r", offset);
+
+		send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
+		send_buf(h, 2, RKFT_BLOCKSIZE);
+		recv_res(h, 1);
+
+		offset += RKFT_OFF_INCR;
+		size   -= RKFT_OFF_INCR;
+	}
+	fprintf(stderr, "\n");
+	break;
     default:
         break;
     }
