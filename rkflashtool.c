@@ -37,8 +37,8 @@
 #include <string.h>
 #include <libusb-1.0/libusb.h>
 
-#define RKFLASHTOOL_VERSION_MAJOR      4
-#define RKFLASHTOOL_VERSION_MINOR      2
+#define RKFLASHTOOL_VERSION_MAJOR      3
+#define RKFLASHTOOL_VERSION_MINOR      3
 
 #define VID_RK              0x2207
 #define PID_RK2818          0x281a
