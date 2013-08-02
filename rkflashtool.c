@@ -1,6 +1,6 @@
 /* rkflashtool - for RK2808, RK2818, RK2918 and RK3066, RK3188 based devices
  *
- * Copyright (C) 2012 Astralix          (cleanup, addons, new CPUs)
+ * Copyright (C) 2012 Astralix          (cleanup, add-ons, new CPUs)
  * Copyright (C) 2011 Ivo van Poorten   (complete rewrite for libusb)
  * Copyright (C) 2010 FUKAUMI Naoki     (reverse engineering of protocol)
  *
