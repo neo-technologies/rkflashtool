@@ -34,7 +34,6 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
-#include <errno.h>
 #include <libusb-1.0/libusb.h>
 
 /* hack to set binary mode for stdin / stdout on Windows */
