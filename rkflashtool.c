@@ -1,4 +1,4 @@
-/* rkflashtool - for RK2808, RK2818, RK2918 and RK3066, RK3188 based devices
+/* rkflashtool - for RK2808, RK2818, RK2918, RK3066 and RK3188 based devices
  *
  * Copyright (C) 2012 Astralix          (cleanup, add-ons, new CPUs)
  * Copyright (C) 2011 Ivo van Poorten   (complete rewrite for libusb)
@@ -43,8 +43,8 @@
 int _CRT_fmode = _O_BINARY;
 #endif
 
-#define RKFLASHTOOL_VERSION_MAJOR      3
-#define RKFLASHTOOL_VERSION_MINOR      3
+#define RKFLASHTOOL_VERSION_MAJOR      5
+#define RKFLASHTOOL_VERSION_MINOR      0
 
 #define VID_RK              0x2207
 #define PID_RK2818          0x281a
