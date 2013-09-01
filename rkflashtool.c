@@ -145,6 +145,8 @@ int main(int argc, char **argv) {
     int offset = 0, size = 0;
     char action;
 
+    info("rkflashtool v%d.%d\n", RKFLASHTOOL_VERSION_MAJOR, RKFLASHTOOL_VERSION);
+
     NEXT; if (!argc) usage();
 
     action = **argv; NEXT;
