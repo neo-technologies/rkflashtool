@@ -232,7 +232,6 @@ int main(int argc, char **argv) {
         while (size > 0) {
             info("writing flash memory at offset 0x%08x\n", offset);
 
-            memset(buf, 0, RKFT_BLOCKSIZE);
             if (read(0, buf, RKFT_BLOCKSIZE) <= 0)
                 fatal("premature end-of-file reached.\n");
 
