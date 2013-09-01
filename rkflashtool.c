@@ -158,11 +158,6 @@ int main(int argc, char **argv) {
         offset = strtoul(argv[0], NULL, 0);
         size   = strtoul(argv[1], NULL, 0);
         break;
-    case 'v': case 'V':
-        printf("rkflashtool version %d.%d\n",
-               RKFLASHTOOL_VERSION_MAJOR, RKFLASHTOOL_VERSION_MINOR);
-        exit(0);
-        break;
     default:
         usage();
     }
