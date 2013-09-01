@@ -246,7 +246,7 @@ int main(int argc, char **argv) {
             if (read(0, buf, RKFT_BLOCKSIZE) <= 0) {
                 info("EOF reached.\n");
                 size = 0;
-            };
+            }
 
             send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
             send_buf(h, 2, RKFT_BLOCKSIZE);
