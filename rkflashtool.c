@@ -155,7 +155,9 @@ int main(int argc, char **argv) {
     case 'b':
         if (argc) usage();
         break;
-    case 'e': case 'r': case 'w':
+    case 'e':
+    case 'r':
+    case 'w':
         if (argc!=2) usage();
         offset = strtoul(argv[0], NULL, 0);
         size   = strtoul(argv[1], NULL, 0);
@@ -164,7 +166,8 @@ int main(int argc, char **argv) {
         usage();
     }
 
-    if (libusb_init(&c)) fatal("cannot init libusb\n");
+    if (libusb_init(&c))
+        fatal("cannot init libusb\n");
 
     libusb_set_debug(c, 3);
 
@@ -204,7 +207,7 @@ int main(int argc, char **argv) {
         recv_res(h, 1);
         break;
     case 'r':
-        while (size>0) {
+        while (size > 0) {
             if (offset % RKFT_DISPLAY == 0)
                 info("reading flash memory at offset 0x%08x\r", offset);
 
@@ -221,7 +224,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "\n");
         break;
     case 'w':
-        while (size>0) {
+        while (size > 0) {
             if (offset % RKFT_DISPLAY == 0)
                 info("writing flash memory at offset 0x%08x\r", offset);
 
