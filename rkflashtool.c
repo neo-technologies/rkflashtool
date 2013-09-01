@@ -112,7 +112,8 @@ static void usage(void) {
           "\trkflashtool b                   \treboot device\n"
           "\trkflashtool e offset size       \terase flash (fill with 0x%02x)\n"
           "\trkflashtool r offset size >file \tread flash\n"
-          "\trkflashtool w offset size <file \twrite flash\n\n"
+          "\trkflashtool w offset size <file \twrite flash\n"
+          "\trkflashtool p >file             \tfetch parameters\n\n"
           "\toffset and size are in units of 512 bytes\n", RKFT_FILLBYTE);
 }
 
@@ -162,6 +163,11 @@ int main(int argc, char **argv) {
         offset = strtoul(argv[0], NULL, 0);
         size   = strtoul(argv[1], NULL, 0);
         break;
+    case 'p':
+        if (argc) usage();
+        offset = 0;
+        size   = 1024;
+        break; 
     default:
         usage();
     }
@@ -240,6 +246,25 @@ int main(int argc, char **argv) {
             size   -= RKFT_OFF_INCR;
         }
         fprintf(stderr, "\n");
+        break;
+    case 'p': /* Retreive parameters */
+        {
+            uint32_t *p = (uint32_t*)buf;
+            
+            info("reading parameters at offset 0x%08x ", offset);
+
+            send_cmd(h, 2, 0x80, 0x000a1400, offset, RKFT_OFF_INCR);
+            recv_buf(h, 1, RKFT_BLOCKSIZE);
+            recv_res(h, 1);
+            info("crc 0x%08x ", *p++);
+            size = *p;;
+            info("size 0x%08x\n", size);
+
+            if ( write(1, &buf[8], RKFT_BLOCKSIZE) <= 0) {
+                fatal("Write error! Disk full?\n");
+                size = 0;
+            }
+        }
         break;
     case 'e':
         memset(buf, RKFT_FILLBYTE, RKFT_BLOCKSIZE);
