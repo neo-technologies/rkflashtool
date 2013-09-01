@@ -52,6 +52,7 @@ int _CRT_fmode = _O_BINARY;
 #define PID_RK3066      0x300a
 #define PID_RK3188      0x310b
 
+
 #define RKFT_BLOCKSIZE  0x4000                  /* must be multiple of 512 */
 #define RKFT_OFF_INCR   (RKFT_BLOCKSIZE>>9)
 
@@ -217,7 +218,8 @@ int main(int argc, char **argv) {
         recv_res(h, 1);
         break;
     case 'r':   /* Read FALSH */
-        while (size > 0) {
+        while (size > 0)
+        {
             if (offset % RKFT_DISPLAY == 0)
                 info("reading flash memory at offset 0x%08x\r", offset);
 
@@ -234,7 +236,8 @@ int main(int argc, char **argv) {
         fprintf(stderr, "\n");
         break;
     case 'w':   /* Write FLASH */
-        while (size > 0) {
+        while (size > 0)
+        {
             if (offset % RKFT_DISPLAY == 0)
                 info("writing flash memory at offset 0x%08x\r", offset);
 
@@ -272,7 +275,8 @@ int main(int argc, char **argv) {
         break;
     case 'e':
         memset(buf, RKFT_FILLBYTE, RKFT_BLOCKSIZE);
-        while (size>0) {
+        while (size > 0)
+        {
             if (offset % RKFT_DISPLAY == 0)
                 info("erasing flash memory at offset 0x%08x\r", offset);
 
