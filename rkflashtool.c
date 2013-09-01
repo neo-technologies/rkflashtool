@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
     case 'e':
     case 'r':
     case 'w':
-        if (argc!=2) usage();
+        if (argc != 2) usage();
         offset = strtoul(argv[0], NULL, 0);
         size   = strtoul(argv[1], NULL, 0);
         break;
