@@ -46,13 +46,6 @@ int _CRT_fmode = _O_BINARY;
 #define RKFLASHTOOL_VERSION_MAJOR      5
 #define RKFLASHTOOL_VERSION_MINOR      0
 
-#define VID_RK              0x2207
-#define PID_RK2818          0x281a
-#define PID_RK2918          0x290a
-#define PID_RK3066          0x300a
-#define PID_RK3168          0x300b
-#define PID_RK3188          0x310b
-
 #define RKFT_BLOCKSIZE      0x4000                  /* must be multiple of 512 */
 #define RKFT_IDB_BLOCKSIZE  0x210
 #define RKFT_IDB_INCR       0x20
@@ -82,11 +75,11 @@ typedef struct {
 } t_pid;
 
 const t_pid pidtab[] = {
-    { PID_RK2818, "RK2818" },
-    { PID_RK2918, "RK2918" },
-    { PID_RK3066, "RK3066" },
-    { PID_RK3168, "RK3168" },
-    { PID_RK3188, "RK3188" },
+    { 0x281a, "RK2818" },
+    { 0x290a, "RK2918" },
+    { 0x300a, "RK3066" },
+    { 0x300b, "RK3168" },
+    { 0x310b, "RK3188" },
     { 0, "" },
 };
 
@@ -190,7 +183,7 @@ int main(int argc, char **argv) {
     /* Detect connected RockChip device */
     
     while ( !h && ppid->pid) {
-        h = libusb_open_device_with_vid_pid(c, VID_RK, ppid->pid);
+        h = libusb_open_device_with_vid_pid(c, 0x2207, ppid->pid);
         if (h) {
             info("Detected %s...\n", ppid->name);
             break;
