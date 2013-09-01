@@ -212,7 +212,7 @@ int main(int argc, char **argv) {
     /* Check and prepare command */
 
     switch(action) {
-    case 'b':
+    case 'b':   /* Reboot device */
         info("rebooting device...\n");
         send_cmd(h, 2, 0x00, 0x0006ff00, 0x00000000, 0x00);
         recv_res(h, 1);
