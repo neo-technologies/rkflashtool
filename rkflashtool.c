@@ -36,12 +36,6 @@
 #include <string.h>
 #include <libusb-1.0/libusb.h>
 
-/* hack to set binary mode for stdin / stdout on Windows */
-#ifdef _WIN32
-#include <fcntl.h>
-int _CRT_fmode = _O_BINARY;
-#endif
-
 #define RKFLASHTOOL_VERSION_MAJOR      2
 #define RKFLASHTOOL_VERSION_MINOR      2
 
@@ -54,12 +48,6 @@ int _CRT_fmode = _O_BINARY;
 
 #define RKFT_BLOCKSIZE  0x4000                  /* must be multiple of 512 */
 #define RKFT_OFF_INCR   (RKFT_BLOCKSIZE>>9)
-
-#ifndef RKFT_DISPLAY
-#define RKFT_DISPLAY    0x100
-#endif
-
-#define RKFT_FILLBYTE   0xff
 
 #define RKFT_CID        4
 #define RKFT_FLAG       12
@@ -110,11 +98,10 @@ static void info_and_fatal(const int s, char *f, ...) {
 static void usage(void) {
     fatal("usage:\n"
           "\trkflashtool b                   \treboot device\n"
-          "\trkflashtool e offset size       \terase flash (fill with 0x%02x)\n"
           "\trkflashtool r offset size >file \tread flash\n"
           "\trkflashtool w offset size <file \twrite flash\n"
           "\trkflashtool p >file             \tfetch parameters\n\n"
-          "\toffset and size are in units of 512 bytes\n", RKFT_FILLBYTE);
+          "\toffset and size are in units of 512 bytes\n");
 }
 
 static void send_cmd(libusb_device_handle *h, int e, uint8_t flag,
@@ -147,18 +134,17 @@ int main(int argc, char **argv) {
     char action;
 
     info("rkflashtool v%d.%d\n", RKFLASHTOOL_VERSION_MAJOR, RKFLASHTOOL_VERSION_MINOR);
-
+    
     NEXT; if (!argc) usage();
 
     action = **argv; NEXT;
 
     switch(action) {
     case 'b':
-        if (argc) usage();
+        if (argc) usage(); 
         break;
-    case 'e':
-    case 'r':
-    case 'w':
+    case 'r': 
+    case 'w': 
         if (argc != 2) usage();
         offset = strtoul(argv[0], NULL, 0);
         size   = strtoul(argv[1], NULL, 0);
@@ -166,19 +152,19 @@ int main(int argc, char **argv) {
     case 'p':
         if (argc) usage();
         offset = 0;
-        size   = 1024;
+        size = 1024;
         break; 
     default:
         usage();
     }
 
     /* Initialize libusb */
-
-    if (libusb_init(&c))
+    
+    if (libusb_init(&c)) 
         fatal("cannot init libusb\n");
 
     libusb_set_debug(c, 3);
-
+    
     /* Detect connected RockChip device */
     
     while ( !h && ppid->pid) {
@@ -203,7 +189,6 @@ int main(int argc, char **argv) {
         fatal("cannot claim interface\n");
         
     info("interface claimed\n");
-
     send_cmd(h, 2, 0x80, 0x00060000, 0x00000000, 0x00);        /* Initialize bootloader interface */
     recv_res(h, 1);
     usleep(20*1000);
@@ -217,29 +202,27 @@ int main(int argc, char **argv) {
         recv_res(h, 1);
         break;
     case 'r':   /* Read FALSH */
-        while (size > 0)
+        while (size > 0) 
         {
-            if (offset % RKFT_DISPLAY == 0)
-                info("reading flash memory at offset 0x%08x\n", offset);
+            info("reading flash memory at offset 0x%08x\n", offset);
 
             send_cmd(h, 2, 0x80, 0x000a1400, offset, RKFT_OFF_INCR);
             recv_buf(h, 1, RKFT_BLOCKSIZE);
             recv_res(h, 1);
 
-            if (write(1, buf, RKFT_BLOCKSIZE) <= 0) {
+            if ( write(1, buf, RKFT_BLOCKSIZE) <= 0) {
                 fatal("Write error! Disk full?\n");
                 size = 0;
-             }
-
+            }
+            
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
         }
         break;
     case 'w':   /* Write FLASH */
-        while (size > 0)
+        while (size > 0) 
         {
-            if (offset % RKFT_DISPLAY == 0)
-                info("writing flash memory at offset 0x%08x\n", offset);
+            info("writing flash memory at offset 0x%08x\n", offset);
 
             memset(buf, 0, RKFT_BLOCKSIZE);
             if (read(0, buf, RKFT_BLOCKSIZE) <= 0) {
@@ -255,7 +238,7 @@ int main(int argc, char **argv) {
             size   -= RKFT_OFF_INCR;
         }
         break;
-    case 'p': /* Retreive parameters */
+    case 'p':   /* Retreive parameters */
         {
             uint32_t *p = (uint32_t*)buf;
             
@@ -272,21 +255,6 @@ int main(int argc, char **argv) {
                 fatal("Write error! Disk full?\n");
                 size = 0;
             }
-        }
-        break;
-    case 'e':
-        memset(buf, RKFT_FILLBYTE, RKFT_BLOCKSIZE);
-        while (size > 0)
-        {
-            if (offset % RKFT_DISPLAY == 0)
-                info("erasing flash memory at offset 0x%08x\n", offset);
-
-            send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
-            send_buf(h, 2, RKFT_BLOCKSIZE);
-            recv_res(h, 1);
-
-            offset += RKFT_OFF_INCR;
-            size   -= RKFT_OFF_INCR;
         }
         break;
     default:
