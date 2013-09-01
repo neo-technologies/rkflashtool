@@ -1,4 +1,5 @@
-/* rkflashtool - for RK2808, RK2818, RK2918, RK3066 and RK3188 based devices
+/* rkflashtool - for RockChip based devices.
+ *               (RK2808, RK2818, RK2918, RK3066, RK3068 and RK3188)
  *
  * Copyright (C) 2012 Astralix          (cleanup, add-ons, new CPUs)
  * Copyright (C) 2011 Ivo van Poorten   (complete rewrite for libusb)
@@ -23,10 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Build with:
- *
- *      gcc -o rkflashtool rkflashtool.c -lusb-1.0 -O2 -W -Wall -s
  */
 
 #include <stdio.h>
