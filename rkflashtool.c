@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
         break;
     case 'v': case 'V':
         printf("rkflashtool version %d.%d\n",
-               RKFLASHTOOL_VER_MAJOR, RKFLASHTOOL_VER_MINOR);
+               RKFLASHTOOL_VERSION_MAJOR, RKFLASHTOOL_VERSION_MINOR);
         exit(0);
         break;
     default:
