@@ -1,9 +1,8 @@
 /* rkflashtool - for RockChip based devices.
  *               (RK2808, RK2818, RK2918, RK3066, RK3068 and RK3188)
  *
- * Copyright (C) 2012 Astralix          (cleanup, add-ons, new CPUs)
- * Copyright (C) 2011 Ivo van Poorten   (complete rewrite for libusb)
- * Copyright (C) 2010 FUKAUMI Naoki     (reverse engineering of protocol)
+ * Copyright (C) 2010-2013 by Ivo van Poorten, Fukaumi Naoki, Guenter Knauf,
+ *                            Ulrich Prinz, Steve Wilson
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
