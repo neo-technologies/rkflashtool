@@ -227,9 +227,11 @@ int main(int argc, char **argv) {
             recv_buf(h, 1, RKFT_BLOCKSIZE);
             recv_res(h, 1);
 
-            /* check for write() errors to catch disk-full, no-perms, etc. */
-            if (write(1, buf, RKFT_BLOCKSIZE) < 0)
-                fatal("error writing buffer to stdout: %s\n", strerror(errno));
+            if (write(1, buf, RKFT_BLOCKSIZE) <= 0) {
+                fatal("Write error! Disk full?\n");
+                size = 0;
+             }
+
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
         }
