@@ -243,8 +243,10 @@ int main(int argc, char **argv) {
                 info("writing flash memory at offset 0x%08x\n", offset);
 
             memset(buf, 0, RKFT_BLOCKSIZE);
-            /* we ignore here read() errors and pad up to given size */
-            if (read(0, buf, RKFT_BLOCKSIZE) < 0) {};
+            if (read(0, buf, RKFT_BLOCKSIZE) <= 0) {
+                info("EOF reached.\n");
+                size = 0;
+            };
 
             send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
             send_buf(h, 2, RKFT_BLOCKSIZE);
