@@ -50,10 +50,10 @@ int _CRT_fmode = _O_BINARY;
 #define RKFT_OFF_INCR       (RKFT_BLOCKSIZE>>9)
 
 #ifndef RKFT_DISPLAY
-#define RKFT_DISPLAY	    0x100
+#define RKFT_DISPLAY        0x100
 #endif
 
-#define RKFT_FILLBYTE 	    0xff
+#define RKFT_FILLBYTE       0xff
 
 #define RKFT_CID            4
 #define RKFT_FLAG           12
@@ -306,20 +306,20 @@ int main(int argc, char **argv) {
         }
         break;
     case 'e':   /* Erase flash */
-	memset(buf, RKFT_FILLBYTE, RKFT_BLOCKSIZE);
-	while (size>0) {
-		if (offset % RKFT_DISPLAY == 0)
-			info("erasing flash memory at offset 0x%08x\r", offset);
+        memset(buf, RKFT_FILLBYTE, RKFT_BLOCKSIZE);
+        while (size>0) {
+                if (offset % RKFT_DISPLAY == 0)
+                        info("erasing flash memory at offset 0x%08x\r", offset);
 
-		send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
-		send_buf(h, 2, RKFT_BLOCKSIZE);
-		recv_res(h, 1);
+                send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
+                send_buf(h, 2, RKFT_BLOCKSIZE);
+                recv_res(h, 1);
 
-		offset += RKFT_OFF_INCR;
-		size   -= RKFT_OFF_INCR;
-	}
-	fprintf(stderr, "\n");
-	break;
+                offset += RKFT_OFF_INCR;
+                size   -= RKFT_OFF_INCR;
+        }
+        fprintf(stderr, "\n");
+        break;
     default:
         break;
     }
