@@ -205,7 +205,7 @@ int main(int argc, char **argv) {
         
     info("interface claimed\n");
 
-    send_cmd(h, 2, 0x80, 0x00060000, 0x00000000, 0x00);        /* INIT */
+    send_cmd(h, 2, 0x80, 0x00060000, 0x00000000, 0x00);        /* Initialize bootloader interface */
     recv_res(h, 1);
     usleep(20*1000);
 
