@@ -172,6 +172,8 @@ int main(int argc, char **argv) {
         usage();
     }
 
+    /* Initialize libusb */
+
     if (libusb_init(&c))
         fatal("cannot init libusb\n");
 
@@ -206,13 +208,15 @@ int main(int argc, char **argv) {
     recv_res(h, 1);
     usleep(20*1000);
 
+    /* Check and prepare command */
+
     switch(action) {
     case 'b':
         info("rebooting device...\n");
         send_cmd(h, 2, 0x00, 0x0006ff00, 0x00000000, 0x00);
         recv_res(h, 1);
         break;
-    case 'r':
+    case 'r':   /* Read FALSH */
         while (size > 0) {
             if (offset % RKFT_DISPLAY == 0)
                 info("reading flash memory at offset 0x%08x\r", offset);
@@ -229,7 +233,7 @@ int main(int argc, char **argv) {
         }
         fprintf(stderr, "\n");
         break;
-    case 'w':
+    case 'w':   /* Write FLASH */
         while (size > 0) {
             if (offset % RKFT_DISPLAY == 0)
                 info("writing flash memory at offset 0x%08x\r", offset);
@@ -284,6 +288,8 @@ int main(int argc, char **argv) {
     default:
         break;
     }
+
+    /* Disconnect and close all interfaces */
 
     libusb_release_interface(h, 0);
     libusb_close(h);
