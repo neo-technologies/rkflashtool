@@ -221,10 +221,8 @@ int main(int argc, char **argv) {
             recv_buf(h, 1, RKFT_BLOCKSIZE);
             recv_res(h, 1);
 
-            if ( write(1, buf, RKFT_BLOCKSIZE) <= 0) {
+            if ( write(1, buf, RKFT_BLOCKSIZE) <= 0)
                 fatal("Write error! Disk full?\n");
-                size = 0;
-            }
             
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
