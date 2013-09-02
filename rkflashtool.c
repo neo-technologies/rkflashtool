@@ -42,7 +42,7 @@ int _CRT_fmode = _O_BINARY;
 #define RKFLASHTOOL_VERSION_MAJOR      5
 #define RKFLASHTOOL_VERSION_MINOR      0
 
-#define RKFT_BLOCKSIZE      0x4000                  /* must be multiple of 512 */
+#define RKFT_BLOCKSIZE      0x4000      /* must be multiple of 512 */
 #define RKFT_IDB_BLOCKSIZE  0x210
 #define RKFT_IDB_INCR       0x20
 #define RKFT_MEM_INCR       0x80
@@ -78,7 +78,6 @@ const t_pid pidtab[] = {
     { 0x310b, "RK3188" },
     { 0, "" },
 };
-
 
 static uint8_t cmd[31] = { 'U', 'S', 'B', 'C', };
 static uint8_t res[13];
@@ -141,7 +140,8 @@ int main(int argc, char **argv) {
     int offset = 0, size = 0;
     char action;
 
-    info("rkflashtool v%d.%d\n", RKFLASHTOOL_VERSION_MAJOR, RKFLASHTOOL_VERSION_MINOR);
+    info("rkflashtool v%d.%d\n", RKFLASHTOOL_VERSION_MAJOR,
+                                 RKFLASHTOOL_VERSION_MINOR);
     
     NEXT; if (!argc) usage();
 
@@ -171,8 +171,7 @@ int main(int argc, char **argv) {
 
     /* Initialize libusb */
     
-    if (libusb_init(&c)) 
-        fatal("cannot init libusb\n");
+    if (libusb_init(&c)) fatal("cannot init libusb\n");
 
     libusb_set_debug(c, 3);
     
@@ -198,13 +197,15 @@ int main(int argc, char **argv) {
 
     if (libusb_claim_interface(h, 0) < 0)  
         fatal("cannot claim interface\n");
-        
     info("interface claimed\n");
-    send_cmd(h, 2, 0x80, 0x00060000, 0x00000000, 0x00);        /* Initialize bootloader interface */
+
+    /* Initialize bootloader interface */
+
+    send_cmd(h, 2, 0x80, 0x00060000, 0x00000000, 0x00);
     recv_res(h, 1);
     usleep(20*1000);
 
-    /* Check and prepare command */
+    /* Check and execute command */
 
     switch(action) {
     case 'b':   /* Reboot device */
