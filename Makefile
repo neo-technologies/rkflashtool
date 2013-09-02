@@ -26,11 +26,11 @@ RCFLAGS	= -O coff -i
 BINEXT	= .exe
 RESFILE	= %.res
 AWK	= awk
-VERMAJ	= $(shell $(AWK) '/RKFLASHTOOL_VERSION_MAJOR/{print $$3}' rkflashtool.c)
-VERMIN	= $(shell $(AWK) '/RKFLASHTOOL_VERSION_MINOR/{print $$3}' rkflashtool.c)
+VERMAJ	= $(shell $(AWK) '/define.*RKFLASHTOOL_VERSION_MAJOR/{print $$3}' rkflashtool.c)
+VERMIN	= $(shell $(AWK) '/define.*RKFLASHTOOL_VERSION_MINOR/{print $$3}' rkflashtool.c)
 VERREV	= 0
-LCOPYR	= 2011-2012 Ivo van Poorten
-FDESCR	= Flashtool for RK2808, RK2818 and RK2918 based tablets
+LCOPYR	= 2010-2013 Ivo van Poorten, Fukaumi Naoki, Guenter Knauf, Ulrich Prinz, Steve Wilson
+FDESCR	= Flashtool for RK2808, RK2818, RK2918, RK3066, RK3068 and RK3188 based tablets
 WWWURL	= http://sourceforge.net/projects/rkflashtool/
 ifeq ($(findstring /sh,$(SHELL)),/sh)
 DL	= '
@@ -51,7 +51,7 @@ clean:
 %.res: %.rc
 	$(RC) $(RCFLAGS) $< -o $@
 
-%.rc: GNUmakefile
+%.rc: Makefile
 	@echo $(DL)1 VERSIONINFO $(DL)>$@
 	@echo $(DL) FILEVERSION $(VERMAJ),$(VERMIN),$(VERREV),0 $(DL)>>$@
 	@echo $(DL) PRODUCTVERSION $(VERMAJ),$(VERMIN),$(VERREV),0 $(DL)>>$@
