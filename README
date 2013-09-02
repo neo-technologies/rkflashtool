@@ -8,11 +8,11 @@ Install libusb-1.0 and its development files and run:
 Cross-compilation for win32/64 (assuming you have the proper toolchain
 and libusb-1.0 for mingw32 installed), you can run:
 
-    $ make MACH=cygwin CROSSPREFIX=i686-w64-mingw32-
+    $ make MACH=mingw CROSSPREFIX=i686-w64-mingw32-
 
     or
 
-    $ make MACH=cygwin CROSSPREFIX=x86_64-w64-mingw32-
+    $ make MACH=mingw CROSSPREFIX=x86_64-w64-mingw32-
 
 USAGE
 =====
