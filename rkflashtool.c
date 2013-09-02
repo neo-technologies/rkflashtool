@@ -52,8 +52,6 @@ int _CRT_fmode = _O_BINARY;
 #define RKFT_DISPLAY        0x100
 #endif
 
-#define RKFT_FILLBYTE       0xff
-
 #define RKFT_CID            4
 #define RKFT_FLAG           12
 #define RKFT_COMMAND        13
@@ -106,7 +104,9 @@ static void usage(void) {
           "\trkflashtool i offset blocks >file \tread IDB flash\n"
           "\trkflashtool r offset size >file \tread flash\n"
           "\trkflashtool w offset size <file \twrite flash\n"
-          "\trkflashtool p >file             \tfetch parameters\n\n"
+          "\trkflashtool p >file             \tfetch parameters\n"
+          "\trkflashtool e offset size       \terase flash (fill with 0xff)\n"
+          "\n"
           "\toffset and size are in units of 512 bytes\n");
 }
 
@@ -297,7 +297,7 @@ int main(int argc, char **argv) {
         }
         break;
     case 'e':   /* Erase flash */
-        memset(buf, RKFT_FILLBYTE, RKFT_BLOCKSIZE);
+        memset(buf, 0xff, RKFT_BLOCKSIZE);
         while (size > 0) {
                 if (offset % RKFT_DISPLAY == 0)
                         info("erasing flash memory at offset 0x%08x\r", offset);
