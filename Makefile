@@ -65,16 +65,16 @@ clean:
 	@echo $(DL)  BEGIN $(DL)>>$@
 	@echo $(DL)    BLOCK "040904E4" $(DL)>>$@
 	@echo $(DL)    BEGIN $(DL)>>$@
-	@echo $(DL)      VALUE "LegalCopyright","\251 $(LCOPYR)\0" $(DL)>>$@
-#	@echo $(DL)      VALUE "CompanyName","$(COMPANY)\0" $(DL)>>$@
-	@echo $(DL)      VALUE "ProductName","$(notdir $(@:.rc=)).exe\0" $(DL)>>$@
-	@echo $(DL)      VALUE "ProductVersion","$(VERMAJ).$(VERMIN).$(VERREV)\0" $(DL)>>$@
-	@echo $(DL)      VALUE "License","Released under BSD license.\0" $(DL)>>$@
-	@echo $(DL)      VALUE "FileDescription","$(FDESCR)\0" $(DL)>>$@
-	@echo $(DL)      VALUE "FileVersion","$(VERMAJ).$(VERMIN).$(VERREV)\0" $(DL)>>$@
-	@echo $(DL)      VALUE "InternalName","$(notdir $(@:.rc=))\0" $(DL)>>$@
-	@echo $(DL)      VALUE "OriginalFilename","$(notdir $(@:.rc=)).exe\0" $(DL)>>$@
-	@echo $(DL)      VALUE "WWW","$(WWWURL)\0" $(DL)>>$@
+	@echo $(DL)      VALUE "LegalCopyright","\251 $(LCOPYR)\\0" $(DL)>>$@
+#	@echo $(DL)      VALUE "CompanyName","$(COMPANY)\\0" $(DL)>>$@
+	@echo $(DL)      VALUE "ProductName","$(notdir $(@:.rc=)).exe\\0" $(DL)>>$@
+	@echo $(DL)      VALUE "ProductVersion","$(VERMAJ).$(VERMIN).$(VERREV)\\0" $(DL)>>$@
+	@echo $(DL)      VALUE "License","Released under BSD license.\\0" $(DL)>>$@
+	@echo $(DL)      VALUE "FileDescription","$(FDESCR)\\0" $(DL)>>$@
+	@echo $(DL)      VALUE "FileVersion","$(VERMAJ).$(VERMIN).$(VERREV)\\0" $(DL)>>$@
+	@echo $(DL)      VALUE "InternalName","$(notdir $(@:.rc=))\\0" $(DL)>>$@
+	@echo $(DL)      VALUE "OriginalFilename","$(notdir $(@:.rc=)).exe\\0" $(DL)>>$@
+	@echo $(DL)      VALUE "WWW","$(WWWURL)\\0" $(DL)>>$@
 	@echo $(DL)    END $(DL)>>$@
 	@echo $(DL)  END $(DL)>>$@
 	@echo $(DL)  BLOCK "VarFileInfo" $(DL)>>$@
