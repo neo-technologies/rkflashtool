@@ -46,7 +46,7 @@ all: $(PROGS)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LIBS)
 
 clean:
-	$(RM) $(PROGS) *.res *.rc *.zip *.tar.gz *.tar.bz2 *.tar.xz
+	$(RM) $(PROGS) *.res *.rc *.zip *.tar.gz *.tar.bz2 *.tar.xz *~
 
 %.res: %.rc
 	$(RC) $(RCFLAGS) $< -o $@
