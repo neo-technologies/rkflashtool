@@ -1,5 +1,5 @@
 /* rkflashtool - for RockChip based devices.
- *               (RK2808, RK2818, RK2918, RK3066, RK3068 and RK3188)
+ *               (RK2808, RK2818, RK2918, RK2928, RK3066, RK3068 and RK3188)
  *
  * Copyright (C) 2010-2013 by Ivo van Poorten, Fukaumi Naoki, Guenter Knauf,
  *                            Ulrich Prinz, Steve Wilson
@@ -40,7 +40,7 @@ int _CRT_fmode = _O_BINARY;
 #endif
 
 #define RKFLASHTOOL_VERSION_MAJOR      5
-#define RKFLASHTOOL_VERSION_MINOR      0
+#define RKFLASHTOOL_VERSION_MINOR      1
 
 #define RKFT_BLOCKSIZE      0x4000      /* must be multiple of 512 */
 #define RKFT_IDB_BLOCKSIZE  0x210
@@ -71,6 +71,7 @@ typedef struct {
 const t_pid pidtab[] = {
     { 0x281a, "RK2818" },
     { 0x290a, "RK2918" },
+    { 0x292a, "RK2928" },
     { 0x300a, "RK3066" },
     { 0x300b, "RK3168" },
     { 0x310b, "RK3188" },
