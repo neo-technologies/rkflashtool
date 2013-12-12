@@ -301,7 +301,7 @@ int main(int argc, char **argv) {
         memset(buf, 0xff, RKFT_BLOCKSIZE);
         while (size > 0) {
                 if (offset % RKFT_DISPLAY == 0)
-                        info("erasing flash memory at offset 0x%08x\r", offset);
+                        info("erasing flash memory at offset 0x%08x\n", offset);
 
                 send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
                 send_buf(h, 2, RKFT_BLOCKSIZE);
