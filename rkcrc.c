@@ -68,9 +68,11 @@ usage:
     if ((out = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1)
         err(1, "%s", argv[1]);
 
-    memcpy(buf, strings[which], 4);
-    PUT32LE(buf+4, st.st_size);
-    write(out, buf, 8);
+    if (which >= 0) {
+        memcpy(buf, strings[which], 4);
+        PUT32LE(buf+4, st.st_size);
+        write(out, buf, 8);
+    }
 
     while ((nr = read(in, buf, sizeof(buf))) > 0) {
         RKCRC(crc, buf, nr);
