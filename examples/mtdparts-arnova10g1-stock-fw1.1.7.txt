@@ -1,0 +1,10 @@
+CMDLINE: noinitrd console=ttyS1,115200n8n init=/init root=/dev/mtdblock2 mem=208M@0x60000000 mtdparts=rk28xxnand:
+misc        0x00002000
+kernel      0x00004000
+boot        0x00002000
+recovery    0x00004000
+system      0x00030000
+backup      0x0003a000
+cache       0x0003a000
+userdata    0x00096000
+user        -
