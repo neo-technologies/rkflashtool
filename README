@@ -18,21 +18,72 @@ USAGE
 =====
 
 Read parameters:
-- sudo ./rkflashtool p > parm.bin
-- cat parm.bin
-- The output will show 2 hex numbers and the partition (,0x00008000@0x00010000(recovery),)
-- When using the rkflashtool, swap the 2 hex numbers found in the parm.bin for the respective partition
-- ie. Writing to recovery would be:
+
+sudo ./rkflashtool p > parm.bin
+cat parm.bin
+
+The output will show 2 hex numbers and the partition name.
+(....,0x00008000@0x00010000(recovery),....)
+The first number is the size of the partition, the second number is the
+offset. So, to write the recovery image, use:
+
 sudo ./rkflashtool w 0x10000 0x8000 < recovery.img
 
-- rkflashtool b                         reboot device
-- rkflashtool r offset size >file       read flash
-- rkflashtool w offset size <file       write flash
 
-- rkflashtool m offset size >file       read 0x80 bytes DRAM
-- rkflashtool i offset blocks >file     read IDB flash
-- rkflashtool p >file                   fetch parameters
+All available commands:
 
-- rkflashtool e offset size             erase flash (fill with 0xff)
+rkflashtool b                         reboot device
+rkflashtool r offset size >file       read flash
+rkflashtool w offset size <file       write flash
 
-offset and size are in units (blocks) of 512 bytes
+rkflashtool m offset size >file       read 0x80 bytes DRAM
+rkflashtool i offset blocks >file     read IDB flash
+rkflashtool p >file                   fetch parameters
+
+rkflashtool e offset size             erase flash (fill with 0xff)
+
+offset and size are in units (blocks) of 512 bytes (!)
+
+
+
+Also included:
+
+
+
+rkcrc           sign files with a cyclic redundency code and optionally
+                add a KRNL or PARM + size header
+
+usage: rkcrc [-k|-p] infile outfile
+
+
+
+rkparameters    generate a parameter file
+
+usage: rkparameters model fw_version partitionsfile
+
+    model is found in the large case statement, e.g. arnova7g2
+    you can add your own and please send the information back to me
+    (ivop@euronet.nl) for inclusion in future versions.
+
+    fw_version is the version number, e.g. 1.2.3
+
+    partitionsfile is a file that specifies the kernel command line on the
+    first line and describes all the partitions and their sizes. It skips
+    the parameters block and starts with misc. See the example mtdparts.txt
+    for details.
+
+
+
+rkparametersblock   generate the parameters block
+
+usage: rkparametersblock parametersfile outfile
+
+    parametersfile is the file you have generated with rkparameters.
+    outfile is the file to be written, which can later be flashed to your
+    device.
+    rkparametersblock needs rkcrc to sign the parameter file. After that,
+    it generates an empty 4MB file and pastes in the rkcrc'd file five times
+    at the start of the first five NAND pages (it assumes the NAND page size
+    is always 4096. Let me know if you run into something different).
+
+

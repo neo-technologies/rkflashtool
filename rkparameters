@@ -25,7 +25,7 @@
 
 test "$#" -eq 3 || { cat << __EOF__
 
-usage:    rkparameters model fw_version partitions
+usage:    rkparameters model fw_version partitionsfile
 
 e.g. rkparameters arnova7g2 1.2.3 mtdparts.txt
 
