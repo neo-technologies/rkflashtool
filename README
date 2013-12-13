@@ -25,15 +25,14 @@ Read parameters:
 - ie. Writing to recovery would be:
 sudo ./rkflashtool w 0x10000 0x8000 < recovery.img
 
-**command usage:**
-- rkflashtool b				reboot device
-- rkflashtool r offset size >file	read flash
-- rkflashtool w offset size <file	write flash
+- rkflashtool b                         reboot device
+- rkflashtool r offset size >file       read flash
+- rkflashtool w offset size <file       write flash
 
-- rkflashtool m offset size >file	read 0x80 bytes DRAM
-- rkflashtool i offset blocks >file	read IDB flash
-- rkflashtool p >file			fetch parameters
+- rkflashtool m offset size >file       read 0x80 bytes DRAM
+- rkflashtool i offset blocks >file     read IDB flash
+- rkflashtool p >file                   fetch parameters
 
-- rkflashtool e offset size		erase flash (fill with 0xff)
+- rkflashtool e offset size             erase flash (fill with 0xff)
 
 offset and size are in units (blocks) of 512 bytes
