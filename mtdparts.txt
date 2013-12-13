@@ -1,0 +1,11 @@
+CMDLINE: console=ttyS1,115200n8n androidboot.console=ttyS1 init=/init initrd=0x62000000,0x500000 mtdparts=rk29xxnand:
+misc        0x00002000
+kernel      0x00004000
+boot        0x00002000
+recovery    0x00004000
+system      0x00080000
+backup      0x00082000
+cache       0x0003a000
+userdata    0x00080000
+kpanic      0x00002000
+user        -
