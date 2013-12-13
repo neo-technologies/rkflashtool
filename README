@@ -3,7 +3,7 @@ BUILD
 
 Install libusb-1.0 and its development files and run:
 
-    $ make.
+    $ make
 
 Cross-compilation for win32/64 (assuming you have the proper toolchain
 and libusb-1.0 for mingw32 installed), you can run:
