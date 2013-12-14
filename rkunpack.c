@@ -58,11 +58,19 @@ static void info_and_fatal(const int s, const char *f, ...) {
 
 #define GET32LE(x) ((x)[0] | (x)[1] << 8 | (x)[2] << 16 | (x)[3] << 24)
 
+static void write_file(const char *path, uint8_t *buffer, unsigned int length) {
+    int img;
+    if ((img = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1 ||
+               write(img, buffer, length) == -1 ||
+               close(img) == -1)
+        fatal("%s: %s\n", path, strerror(errno));
+}
+
 static void unpack_rkaf(void) {
     uint8_t *p;
     const char *name, *path, *sep, *fmt;
     char dir[PATH_MAX];
-    int count, img;
+    int count;
 
     info("RKAF signature detected\n");
 
@@ -112,10 +120,7 @@ static void unpack_rkaf(void) {
                 sep++;
             }
 
-            if ((img = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1 ||
-                write(img, &buf[ioff], fsize) == -1 ||
-                close(img) == -1)
-                fatal("%s: %s\n", path, strerror(errno));
+            write_file(path, buf+ioff, fsize);
         }
     }
 }
