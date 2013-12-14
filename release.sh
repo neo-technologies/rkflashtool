@@ -14,6 +14,7 @@ cp -a \
     rkflashtool.c \
     rkcrc.c \
     rkcrc.h \
+    rkunpack.c \
     rkparameters \
     rkparametersblock \
     rkmisc \
