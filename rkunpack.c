@@ -1,5 +1,6 @@
-/*-
- * Copyright (c) 2010 FUKAUMI Naoki.
+/*
+ * Copyright (c) 2010 Fukaumi Naoki
+ * Copyright (c) 2013 Ivo van Poorten
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +26,7 @@
 
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <err.h>
+#include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -35,38 +36,46 @@
 #include <string.h>
 #include <unistd.h>
 
-int
-main(int argc, char *argv[])
-{
-	off_t size;
-	uint32_t fsize, ioff, isize, noff;
+static const char *const strings[2] = { "info", "fatal" };
+
+static void info_and_fatal(const int s, char *f, ...) {
+    va_list ap;
+    va_start(ap,f);
+    fprintf(stderr, "rkunpack: %s: ", strings[s]);
+    vfprintf(stderr, f, ap);
+    va_end(ap);
+    if (s) exit(s);
+}
+
+#define info(...)   info_and_fatal(0, __VA_ARGS__)
+#define fatal(...)  info_and_fatal(1, __VA_ARGS__)
+
+int main(int argc, char *argv[]) {
+    off_t size;
+	unsigned int fsize, ioff, isize, noff;
 	uint8_t *buf, *p;
 	int fd, count, img;
 	const char *name, *path, *sep;
 	char dir[PATH_MAX];
 
-	if (argc != 2) {
-		fprintf(stderr, "usage: %s update.img\n", argv[0]);
-		exit(EXIT_FAILURE);
-	}
+	if (argc != 2) fatal("usage: %s update.img\n", argv[0]);
 
 	if ((fd = open(argv[1], O_RDONLY)) == -1)
-		err(EXIT_FAILURE, "%s", argv[1]);
+        fatal("%s: %s\n", argv[1], strerror(errno));
 
 	if ((size = lseek(fd, 0, SEEK_END)) == -1)
-		err(EXIT_FAILURE, "%s", argv[1]);
+        fatal("%s: %s\n", argv[1], strerror(errno));
 
 	if ((buf = mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_FILE, fd, 0))
-	    == MAP_FAILED)
-		err(EXIT_FAILURE, "%s", argv[1]);
+	                                                    == MAP_FAILED)
+        fatal("%s: %s\n", argv[1], strerror(errno));
 
 	if (memcmp(&buf[0x00], "RKAF", 4) != 0)
-		errx(EXIT_FAILURE, "invalid signature");
+        fatal("%s: invalid signature\n", argv[1]);
 
 	fsize = (buf[4] | buf[5] << 8 | buf[6] << 16 | buf[7] << 24) + 4;
 	if (fsize != size)
-		fprintf(stderr, "invalid file size (should be %u bytes)",
-		    fsize);
+		info("invalid file size (should be %u bytes)", fsize);
 
 	printf("manufacturer %s model %s\n", &buf[0x48], &buf[0x08]);
 
@@ -100,7 +109,7 @@ main(int argc, char *argv[])
 				memcpy(dir, path, sep - path);
 				dir[sep - path] = '\0';
 				if (mkdir(dir, 0755) == -1 && errno != EEXIST)
-					err(EXIT_FAILURE, "%s", dir);
+                    fatal("%s: %s\n", dir, strerror(errno));
 				sep++;
 			}
 
@@ -108,7 +117,7 @@ main(int argc, char *argv[])
 			    0644)) == -1 ||
 			    write(img, &buf[ioff], fsize) == -1 ||
 			    close(img) == -1)
-				err(EXIT_FAILURE, "%s", path);
+                fatal("%s: %s\n", path, strerror(errno));
 		}
 
 		printf(" %d bytes", fsize);
