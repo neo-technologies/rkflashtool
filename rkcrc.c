@@ -35,7 +35,7 @@
 #include "rkcrc.h"
 #include "version.h"
 
-static const char strings[2][4] = { "KRNL", "PARM" };
+static const char headers[2][4] = { "KRNL", "PARM" };
 
 int main(int argc, char *argv[]) {
     struct stat st;
@@ -72,7 +72,7 @@ usage:
         err(1, "%s", argv[1]);
 
     if (which >= 0) {
-        memcpy(buf, strings[which], 4);
+        memcpy(buf, headers[which], 4);
         PUT32LE(buf+4, st.st_size);
         write(out, buf, 8);
     }
