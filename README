@@ -87,3 +87,10 @@ usage: rkparametersblock parametersfile outfile
     is always 4096. Let me know if you run into something different).
 
 
+
+rkunpack        unpack update.img files (not partition.img (!))
+
+usage: rkunpack file
+
+    supports both RKAF and RKFW (which contains an embedded RKAF file)
+
