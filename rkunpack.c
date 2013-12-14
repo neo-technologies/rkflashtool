@@ -39,6 +39,7 @@
 
 static uint8_t *buf;
 static off_t size;
+static unsigned int fsize, ioff, isize, noff;
 static int fd;
 
 static const char *const strings[2] = { "info", "fatal" };
@@ -58,98 +59,103 @@ static void info_and_fatal(const int s, const char *f, ...) {
 #define GET32LE(x) ((x)[0] | (x)[1] << 8 | (x)[2] << 16 | (x)[3] << 24)
 
 static void unpack_rkaf(void) {
-	unsigned int fsize, ioff, isize, noff;
-	uint8_t *p;
-	const char *name, *path, *sep, *fmt;
-	char dir[PATH_MAX];
-	int count, img;
+    uint8_t *p;
+    const char *name, *path, *sep, *fmt;
+    char dir[PATH_MAX];
+    int count, img;
 
     info("RKAF signature detected\n");
 
-	fsize = GET32LE(buf+4) + 4;
-	if (fsize != (unsigned)size)
-		info("invalid file size (should be %u bytes)\n", fsize);
+    fsize = GET32LE(buf+4) + 4;
+    if (fsize != (unsigned)size)
+        info("invalid file size (should be %u bytes)\n", fsize);
     else
         info("file size matches (%u bytes)\n", fsize);
 
     info("manufacturer: %s\n", buf + 0x48);
     info("model: %s\n", buf + 0x08);
 
-	count = GET32LE(buf+0x88);
+    count = GET32LE(buf+0x88);
 
-	info("number of files: %d\n", count);
+    info("number of files: %d\n", count);
 
-	for (p = &buf[0x8c]; count > 0; p += 0x70, count--) {
-		name = (const char *)p;
-		path = (const char *)p + 0x20;
+    for (p = &buf[0x8c]; count > 0; p += 0x70, count--) {
+        name = (const char *)p;
+        path = (const char *)p + 0x20;
 
-		ioff  = GET32LE(p+0x60);
-		noff  = GET32LE(p+0x64);
-		isize = GET32LE(p+0x68);
-		fsize = GET32LE(p+0x6c);
+        ioff  = GET32LE(p+0x60);
+        noff  = GET32LE(p+0x64);
+        isize = GET32LE(p+0x68);
+        fsize = GET32LE(p+0x6c);
 
-		if (memcmp(path, "SELF", 4) == 0) {
-			info("skipping SELF entry\n");
+        if (memcmp(path, "SELF", 4) == 0) {
+            info("skipping SELF entry\n");
         } else {
-		    if (noff != 0xffffffffU)
+            if (noff != 0xffffffffU)
                 fmt = "%08x-%08x %-28s (NAND %08x)\n";
             else
                 fmt = "%08x-%08x %-28s\n";
-			info(fmt, ioff, ioff + isize - 1, path, noff);
+            info(fmt, ioff, ioff + isize - 1, path, noff);
 
             // strip header and footer of parameter file
-			if (memcmp(name, "parameter", 9) == 0) {
-				ioff += 8;
-				fsize -= 12;
-			}
+            if (memcmp(name, "parameter", 9) == 0) {
+                ioff += 8;
+                fsize -= 12;
+            }
 
-			sep = path;
-			while ((sep = strchr(sep, '/')) != NULL) {
-				memcpy(dir, path, sep - path);
-				dir[sep - path] = '\0';
-				if (mkdir(dir, 0755) == -1 && errno != EEXIST)
+            sep = path;
+            while ((sep = strchr(sep, '/')) != NULL) {
+                memcpy(dir, path, sep - path);
+                dir[sep - path] = '\0';
+                if (mkdir(dir, 0755) == -1 && errno != EEXIST)
                     fatal("%s: %s\n", dir, strerror(errno));
-				sep++;
-			}
+                sep++;
+            }
 
-			if ((img = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1 ||
-			    write(img, &buf[ioff], fsize) == -1 ||
-			    close(img) == -1)
+            if ((img = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1 ||
+                write(img, &buf[ioff], fsize) == -1 ||
+                close(img) == -1)
                 fatal("%s: %s\n", path, strerror(errno));
-		}
-	}
+        }
+    }
 }
 
 static void unpack_rkfw(void) {
     info("RKFW signature detected\n");
+    info("version: %d.%d.%d\n", buf[8], buf[7], buf[6]);
 
+    ioff  = GET32LE(buf+0x19);
+    isize = GET32LE(buf+0x1d);
+
+    if (memcmp(buf+ioff, "BOOT", 4))
+        fatal("cannot find BOOT signature\n");
 }
 
 int main(int argc, char *argv[]) {
 
-	if (argc != 2)
+    if (argc != 2)
         fatal("rkunpack v%d.%d\nusage: %s update.img\n",
                RKFLASHTOOL_VERSION_MAJOR,
                RKFLASHTOOL_VERSION_MINOR, argv[0]);
 
-	if ((fd = open(argv[1], O_RDONLY)) == -1)
+    if ((fd = open(argv[1], O_RDONLY)) == -1)
         fatal("%s: %s\n", argv[1], strerror(errno));
 
-	if ((size = lseek(fd, 0, SEEK_END)) == -1)
+    if ((size = lseek(fd, 0, SEEK_END)) == -1)
         fatal("%s: %s\n", argv[1], strerror(errno));
 
-	if ((buf = mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_FILE, fd, 0))
-	                                                    == MAP_FAILED)
+    if ((buf = mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_FILE, fd, 0))
+                                                        == MAP_FAILED)
         fatal("%s: %s\n", argv[1], strerror(errno));
 
-	     if (!memcmp(buf, "RKAF", 4)) unpack_rkaf();
+         if (!memcmp(buf, "RKAF", 4)) unpack_rkaf();
     else if (!memcmp(buf, "RKFW", 4)) unpack_rkfw();
     else fatal("%s: invalid signature\n", argv[1]);
 
-	printf("unpacked\n");
+    printf("unpacked\n");
 
-	munmap(buf, size);
-	close(fd);
+    munmap(buf, size);
+    close(fd);
 
-	return 0;
+    return 0;
 }
