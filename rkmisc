@@ -23,7 +23,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+MAJOR=`grep MAJOR version.h | { read A B C; echo $C; }`
+MINOR=`grep MINOR version.h | { read A B C; echo $C; }`
+
 test "$#" -eq 2 || { cat << __EOF__
+
+rkmisc v$MAJOR.$MINOR
 
 usage:    rkmisc action outfile
 

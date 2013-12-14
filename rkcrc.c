@@ -33,6 +33,7 @@
 #include <string.h>
 
 #include "rkcrc.h"
+#include "version.h"
 
 static const char strings[2][4] = { "KRNL", "PARM" };
 
@@ -50,7 +51,9 @@ int main(int argc, char *argv[]) {
         case 'p': which = 1; break;
         default:
 usage:
-            fprintf(stderr, "usage: %s [-k|-p] infile outfile\n", progname);
+            fprintf(stderr, "%s v%d.%d\nusage: %s [-k|-p] infile outfile\n",
+                    progname, RKFLASHTOOL_VERSION_MAJOR,
+                    RKFLASHTOOL_VERSION_MINOR, progname);
             exit(1);
         }
     }
