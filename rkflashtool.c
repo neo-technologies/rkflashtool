@@ -39,8 +39,7 @@
 int _CRT_fmode = _O_BINARY;
 #endif
 
-#define RKFLASHTOOL_VERSION_MAJOR      5
-#define RKFLASHTOOL_VERSION_MINOR      1
+#include "version.h"
 
 #define RKFT_BLOCKSIZE      0x4000      /* must be multiple of 512 */
 #define RKFT_IDB_BLOCKSIZE  0x210
