@@ -77,7 +77,7 @@ static void unpack_rkaf(void) {
 
 	count = GET32LE(buf+0x88);
 
-	info("number of files: %d\n\n", count);
+	info("number of files: %d\n", count);
 
 	for (p = &buf[0x8c]; count > 0; p += 0x70, count--) {
 		name = (const char *)p;
@@ -92,9 +92,9 @@ static void unpack_rkaf(void) {
 			info("skipping SELF entry\n");
         } else {
 		    if (noff != 0xffffffffU)
-                fmt = "%08x-%08x %-24s (NAND %08x)\n";
+                fmt = "%08x-%08x %-28s (NAND %08x)\n";
             else
-                fmt = "%08x-%08x %-24s\n";
+                fmt = "%08x-%08x %-28s\n";
 			info(fmt, ioff, ioff + isize - 1, path, noff);
 
             // strip header and footer of parameter file
