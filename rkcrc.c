@@ -25,7 +25,8 @@
  */
 
 #include <sys/stat.h>
-#include <err.h>
+#include <stdarg.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -36,6 +37,20 @@
 #include "version.h"
 
 static const char headers[2][4] = { "KRNL", "PARM" };
+
+static const char *const strings[2] = { "info", "fatal" };
+
+static void info_and_fatal(const int s, char *f, ...) {
+    va_list ap;
+    va_start(ap,f);
+    fprintf(stderr, "rkcrc: %s: ", strings[s]);
+    vfprintf(stderr, f, ap);
+    va_end(ap);
+    if (s) exit(s);
+}
+
+#define info(...)   info_and_fatal(0, __VA_ARGS__)
+#define fatal(...)  info_and_fatal(1, __VA_ARGS__)
 
 int main(int argc, char *argv[]) {
     struct stat st;
@@ -49,27 +64,26 @@ int main(int argc, char *argv[]) {
         switch (ch) {
         case 'k': which = 0; break;
         case 'p': which = 1; break;
-        default:
-usage:
-            fprintf(stderr, "%s v%d.%d\nusage: %s [-k|-p] infile outfile\n",
-                    progname, RKFLASHTOOL_VERSION_MAJOR,
-                    RKFLASHTOOL_VERSION_MINOR, progname);
-            exit(1);
+        default: break;
         }
     }
     argc -= optind;
     argv += optind;
 
-    if (argc != 2 || which < 0) goto usage;
+    if (argc != 2)
+        fatal("rkcrc v%d.%d\nusage: %s [-k|-p] infile outfile\n",
+                    RKFLASHTOOL_VERSION_MAJOR,
+                    RKFLASHTOOL_VERSION_MINOR, progname);
+
 
     if ((in = open(argv[0], O_RDONLY)) == -1)
-        err(1, "%s", argv[0]);
+        fatal("%s: %s\n", argv[0], strerror(errno));
 
     if (fstat(in, &st) != 0)
-        err(1, "%s", argv[0]);
+        fatal("%s: %s\n", argv[0], strerror(errno));
 
     if ((out = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1)
-        err(1, "%s", argv[1]);
+        fatal("%s: %s\n", argv[1], strerror(errno));
 
     if (which >= 0) {
         memcpy(buf, headers[which], 4);
