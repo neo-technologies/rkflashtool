@@ -37,9 +37,13 @@
 #include <unistd.h>
 #include "version.h"
 
+static uint8_t *buf;
+static off_t size;
+static int fd;
+
 static const char *const strings[2] = { "info", "fatal" };
 
-static void info_and_fatal(const int s, char *f, ...) {
+static void info_and_fatal(const int s, const char *f, ...) {
     va_list ap;
     va_start(ap,f);
     fprintf(stderr, "rkunpack: %s: ", strings[s]);
@@ -51,13 +55,73 @@ static void info_and_fatal(const int s, char *f, ...) {
 #define info(...)   info_and_fatal(0, __VA_ARGS__)
 #define fatal(...)  info_and_fatal(1, __VA_ARGS__)
 
-int main(int argc, char *argv[]) {
-    off_t size;
+#define GET32LE(x) ((x)[0] | (x)[1] << 8 | (x)[2] << 16 | (x)[3] << 24)
+
+static void unpack_rkaf(void) {
 	unsigned int fsize, ioff, isize, noff;
-	uint8_t *buf, *p;
-	int fd, count, img;
-	const char *name, *path, *sep;
+	uint8_t *p;
+	const char *name, *path, *sep, *fmt;
 	char dir[PATH_MAX];
+	int count, img;
+
+	fsize = GET32LE(buf+4) + 4;
+	if (fsize != (unsigned)size)
+		info("invalid file size (should be %u bytes)\n", fsize);
+    else
+        info("file size matches (%u bytes)\n", fsize);
+
+    info("manufacturer: %s\n", buf + 0x48);
+    info("model: %s\n", buf + 0x08);
+
+	count = GET32LE(buf+0x88);
+
+	info("number of files: %d\n\n", count);
+
+	for (p = &buf[0x8c]; count > 0; p += 0x70, count--) {
+		name = (const char *)p;
+		path = (const char *)p + 0x20;
+
+		ioff  = GET32LE(p+0x60);
+		noff  = GET32LE(p+0x64);
+		isize = GET32LE(p+0x68);
+		fsize = GET32LE(p+0x6c);
+
+		if (memcmp(path, "SELF", 4) == 0) {
+			info("skipping SELF entry\n");
+        } else {
+		    if (noff != 0xffffffffU)
+                fmt = "%08x-%08x %-24s (NAND %08x)\n";
+            else
+                fmt = "%08x-%08x %-24s\n";
+			info(fmt, ioff, ioff + isize - 1, path, noff);
+
+            // strip header and footer of parameter file
+			if (memcmp(name, "parameter", 9) == 0) {
+				ioff += 8;
+				fsize -= 12;
+			}
+
+			sep = path;
+			while ((sep = strchr(sep, '/')) != NULL) {
+				memcpy(dir, path, sep - path);
+				dir[sep - path] = '\0';
+				if (mkdir(dir, 0755) == -1 && errno != EEXIST)
+                    fatal("%s: %s\n", dir, strerror(errno));
+				sep++;
+			}
+
+			if ((img = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1 ||
+			    write(img, &buf[ioff], fsize) == -1 ||
+			    close(img) == -1)
+                fatal("%s: %s\n", path, strerror(errno));
+		}
+	}
+}
+
+static void unpack_rkfw(void) {
+}
+
+int main(int argc, char *argv[]) {
 
 	if (argc != 2)
         fatal("rkunpack v%d.%d\nusage: %s update.img\n",
@@ -74,69 +138,14 @@ int main(int argc, char *argv[]) {
 	                                                    == MAP_FAILED)
         fatal("%s: %s\n", argv[1], strerror(errno));
 
-	if (memcmp(&buf[0x00], "RKAF", 4) != 0)
-        fatal("%s: invalid signature\n", argv[1]);
+	     if (!memcmp(buf, "RKAF", 4)) unpack_rkaf();
+    else if (!memcmp(buf, "RKFW", 4)) unpack_rkfw();
+    else fatal("%s: invalid signature\n", argv[1]);
 
-	fsize = (buf[4] | buf[5] << 8 | buf[6] << 16 | buf[7] << 24) + 4;
-	if (fsize != size)
-		info("invalid file size (should be %u bytes)", fsize);
-
-	printf("manufacturer %s model %s\n", &buf[0x48], &buf[0x08]);
-
-	count = buf[0x88] | buf[0x89] << 8 | buf[0x8a] << 16 | buf[0x8b] << 24;
-
-	printf("%d files\n", count);
-	printf("-------------------------------------------------------------------------------\n");
-
-	for (p = &buf[0x8c]; count > 0; p += 0x70, count--) {
-		name = (const char *)p;
-		path = (const char *)p + 0x20;
-		ioff = p[0x60] | p[0x61] << 8 | p[0x62] << 16 | p[0x63] << 24;
-		noff = p[0x64] | p[0x65] << 8 | p[0x66] << 16 | p[0x67] << 24;
-		isize = p[0x68] | p[0x69] << 8 | p[0x6a] << 16 | p[0x6b] << 24;
-		fsize = p[0x6c] | p[0x6d] << 8 | p[0x6e] << 16 | p[0x6f] << 24;
-
-		if (memcmp(path, "SELF", 4) == 0)
-			printf("----------------- %s:%s(%s)", name, path,
-			    argv[1]);
-		else {
-			printf("%08x-%08x %s:%s", ioff, ioff + isize - 1, name,
-			    path);
-
-			if (memcmp(name, "parameter", 9) == 0) {
-				ioff += 8;
-				fsize -= 12;
-			}
-
-			sep = path;
-			while ((sep = strchr(sep, '/')) != NULL) {
-				memcpy(dir, path, sep - path);
-				dir[sep - path] = '\0';
-				if (mkdir(dir, 0755) == -1 && errno != EEXIST)
-                    fatal("%s: %s\n", dir, strerror(errno));
-				sep++;
-			}
-
-			if ((img = open(path, O_WRONLY | O_CREAT | O_TRUNC,
-			    0644)) == -1 ||
-			    write(img, &buf[ioff], fsize) == -1 ||
-			    close(img) == -1)
-                fatal("%s: %s\n", path, strerror(errno));
-		}
-
-		printf(" %d bytes", fsize);
-
-		if (noff != 0xffffffffU)
-			printf(" NAND offset 0x%x", noff);
-
-		printf("\n");
-	}
-
-	printf("-------------------------------------------------------------------------------\n");
 	printf("unpacked\n");
 
 	munmap(buf, size);
 	close(fd);
 
-	return EXIT_SUCCESS;
+	return 0;
 }
