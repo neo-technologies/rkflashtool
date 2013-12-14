@@ -64,6 +64,8 @@ static void unpack_rkaf(void) {
 	char dir[PATH_MAX];
 	int count, img;
 
+    info("RKAF signature detected\n");
+
 	fsize = GET32LE(buf+4) + 4;
 	if (fsize != (unsigned)size)
 		info("invalid file size (should be %u bytes)\n", fsize);
@@ -119,6 +121,8 @@ static void unpack_rkaf(void) {
 }
 
 static void unpack_rkfw(void) {
+    info("RKFW signature detected\n");
+
 }
 
 int main(int argc, char *argv[]) {
