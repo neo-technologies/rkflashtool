@@ -1,7 +1,7 @@
 #! /bin/sh
 
-MAJOR=`grep '^#def.*MAJOR' rkflashtool.c | rev | cut -b 1-2 | rev | tr -d ' '`
-MINOR=`grep '^#def.*MINOR' rkflashtool.c | rev | cut -b 1-2 | rev | tr -d ' '`
+MAJOR=`grep MAJOR version.h | { read A B C; echo $C; }`
+MINOR=`grep MINOR version.h | { read A B C; echo $C; }`
 
 NAME=rkflashtool-$MAJOR.$MINOR
 DIR=$NAME-src
@@ -12,6 +12,12 @@ mkdir $DIR
 cp -a \
     Makefile \
     rkflashtool.c \
+    rkcrc.c \
+    rkcrc.h \
+    rkparameters \
+    rkparametersblock \
+    rkmisc \
+    rkpad \
     README \
     $DIR
 
@@ -21,6 +27,8 @@ tar cvJf $DIR.tar.xz $DIR
 zip -9r $DIR.zip $DIR
 
 rm -rf $DIR
+
+exit 0
 
 echo trying win32/win64 cross-builds...
 
