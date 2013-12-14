@@ -122,11 +122,19 @@ static void unpack_rkaf(void) {
 }
 
 static void unpack_rkfw(void) {
+    const char *chip = NULL;
+
     info("RKFW signature detected\n");
     info("version: %d.%d.%d\n", buf[9], buf[8], (buf[7]<<8)+buf[6]);
     info("date: %d-%02d-%02d %02d:%02d:%02d\n",
             (buf[0x0f]<<8)+buf[0x0e], buf[0x10], buf[0x11],
             buf[0x12], buf[0x13], buf[0x14]);
+    switch(buf[0x15]) {
+    case 0x50:  chip = "rk29xx"; break;
+    case 0x60:  chip = "rk30xx"; break;
+    case 0x70:  chip = "rk31xx"; break;
+    }
+    info("family: %s\n", chip ? chip : "unknown");
 
     ioff  = GET32LE(buf+0x19);
     isize = GET32LE(buf+0x1d);
