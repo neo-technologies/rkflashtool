@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "version.h"
 
 static const char *const strings[2] = { "info", "fatal" };
 
@@ -58,7 +59,10 @@ int main(int argc, char *argv[]) {
 	const char *name, *path, *sep;
 	char dir[PATH_MAX];
 
-	if (argc != 2) fatal("usage: %s update.img\n", argv[0]);
+	if (argc != 2)
+        fatal("rkunpack v%d.%d\nusage: %s update.img\n",
+               RKFLASHTOOL_VERSION_MAJOR,
+               RKFLASHTOOL_VERSION_MINOR, argv[0]);
 
 	if ((fd = open(argv[1], O_RDONLY)) == -1)
         fatal("%s: %s\n", argv[1], strerror(errno));
