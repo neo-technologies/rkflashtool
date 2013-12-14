@@ -68,7 +68,7 @@ static void write_file(const char *path, uint8_t *buffer, unsigned int length) {
 
 static void unpack_rkaf(void) {
     uint8_t *p;
-    const char *name, *path, *sep, *fmt;
+    const char *name, *path, *sep;
     char dir[PATH_MAX];
     int count;
 
@@ -99,11 +99,7 @@ static void unpack_rkaf(void) {
         if (memcmp(path, "SELF", 4) == 0) {
             info("skipping SELF entry\n");
         } else {
-            if (noff != 0xffffffffU)
-                fmt = "%08x-%08x %-28s (NAND %08x)\n";
-            else
-                fmt = "%08x-%08x %-28s\n";
-            info(fmt, ioff, ioff + isize - 1, path, noff);
+            info("%08x-%08x %-24s (fsize: %d)\n", ioff, ioff + isize - 1, path, fsize);
 
             // strip header and footer of parameter file
             if (memcmp(name, "parameter", 9) == 0) {
