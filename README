@@ -5,8 +5,8 @@ Install libusb-1.0 and its development files and run:
 
     $ make
 
-For cross-compilation for win32/64 you need to install libusb-1.0
-and mman-win32. See at the end of this document for more information.
+For cross-compilation for win32/64 you need to install libusb-1.0.
+See at the end of this document for more information.
 After that, you can run:
 
     $ make MACH=mingw CROSSPREFIX=i686-w64-mingw32-
@@ -110,15 +110,6 @@ make clean
 ./configure --host i686-w64-mingw32 --prefix=/usr/i686-w64-mingw32
 make
 sudo make install
-
-svn checkout http://mman-win32.googlecode.com/svn/trunk/ mman-win32
-cd mman-win32
-./configure --cross-prefix=i686-w64-mingw32- --prefix=/usr/i686-w64-mingw32 --libdir=/usr/i686-w64-mingw32/lib --incdir=/usr/i686-w64-mingw32/include
-make
-sudo make install
-cd /usr/i686-w64-mingw32/include/sys
-ln -s ../mman.h
-
 
 Replace i686-w64-mingw32 with x86_64-w64-mingw32 to do a win64 build.
 
