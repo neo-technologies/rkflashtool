@@ -26,6 +26,7 @@
 
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -36,6 +37,12 @@
 #include <string.h>
 #include <unistd.h>
 #include "version.h"
+
+#ifdef _WIN32       /* hack around non-posix behaviour */
+#undef mkdir
+#define mkdir(a,b) _mkdir(a)
+int _mkdir(const char *);
+#endif
 
 static uint8_t *buf;
 static off_t size;

@@ -29,8 +29,6 @@ zip -9r $DIR.zip $DIR
 
 rm -rf $DIR
 
-exit 0
-
 echo trying win32/win64 cross-builds...
 
 rm -f rkflashtool.exe
