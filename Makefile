@@ -13,7 +13,7 @@ endif
 
 MACH	= $(shell $(CC) -dumpmachine)
 ifeq ($(findstring mingw,$(MACH)),mingw)
-LDFLAGS	+= -static
+LDFLAGS	+= -static -lmman
 USE_RES	= 1
 endif
 ifeq ($(findstring cygwin,$(MACH)),cygwin)
