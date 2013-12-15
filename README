@@ -101,6 +101,8 @@ usage: rkunpack file
 
 Notes on cross-compiling libusb-1.0 and mman-win32 on debian wheezy:
 
+sudo apt-get install mingw-w64
+
 git clone http://git.libusb.org/libusb.git
 cd libusb
 ./autogen.sh
