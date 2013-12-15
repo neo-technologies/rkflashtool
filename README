@@ -5,14 +5,16 @@ Install libusb-1.0 and its development files and run:
 
     $ make
 
-Cross-compilation for win32/64 (assuming you have the proper toolchain
-and libusb-1.0 mman-win32 for mingw installed), you can run:
+For cross-compilation for win32/64 you need to install libusb-1.0
+and mman-win32. See at the end of this document for more information.
+After that, you can run:
 
     $ make MACH=mingw CROSSPREFIX=i686-w64-mingw32-
 
     or
 
     $ make MACH=mingw CROSSPREFIX=x86_64-w64-mingw32-
+
 
 USAGE
 =====
@@ -93,4 +95,28 @@ rkunpack        unpack update.img files (not partition.img (!))
 usage: rkunpack file
 
     supports both RKAF and RKFW (which contains an embedded RKAF file)
+
+
+
+
+Notes on cross-compiling libusb-1.0 and mman-win32 on debian wheezy:
+
+git clone http://git.libusb.org/libusb.git
+cd libusb
+./autogen.sh
+make clean
+./configure --host i686-w64-mingw32 --prefix=/usr/i686-w64-mingw32
+make
+sudo make install
+
+svn checkout http://mman-win32.googlecode.com/svn/trunk/ mman-win32
+cd mman-win32
+./configure --cross-prefix=i686-w64-mingw32- --prefix=/usr/i686-w64-mingw32 --libdir=/usr/i686-w64-mingw32/lib --incdir=/usr/i686-w64-mingw32/include
+make
+sudo make install
+cd /usr/i686-w64-mingw32/include/sys
+ln -s ../mman.h
+
+
+Replace i686-w64-mingw32 with x86_64-w64-mingw32 to do a win64 build.
 
