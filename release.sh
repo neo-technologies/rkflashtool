@@ -19,6 +19,7 @@ cp -a \
     rkparametersblock \
     rkmisc \
     rkpad \
+    rkunsign \
     README \
     $DIR
 

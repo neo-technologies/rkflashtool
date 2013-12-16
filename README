@@ -61,7 +61,7 @@ usage: rkcrc [-k|-p] infile outfile
 
 rkparameters    generate a parameter file
 
-usage: rkparameters model fw_version partitionsfile
+usage: rkparameters model fw_version partitionsfile > outfile
 
     model is found in the large case statement, e.g. arnova7g2
     you can add your own and please send the information back to me
@@ -96,6 +96,20 @@ usage: rkunpack file
 
     supports both RKAF and RKFW (which contains an embedded RKAF file)
 
+
+
+rkpad           pad file with zeroes
+
+usage: rkpad size infile outfile
+
+    Copy infile to outfile and pad with zeroes up to the specified size.
+    size is in blocks of 512 bytes (!) i.e. equal to the partition sizes.
+
+
+
+rkunsign        remove KRNL/PARM header and crc footer
+
+usage: rkunsign infile outfile
 
 
 
