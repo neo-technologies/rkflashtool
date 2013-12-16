@@ -30,9 +30,9 @@ test "$#" -eq 3 || { cat << __EOF__
 
 rkparameters v$MAJOR.$MINOR
 
-usage:    rkparameters model fw_version partitionsfile
+usage:    rkparameters model fw_version partitionsfile > outfile
 
-e.g. rkparameters arnova7g2 1.2.3 mtdparts.txt
+e.g. rkparameters arnova7g2 1.2.3 mtdparts.txt > params
 
 mtdparts.txt:
     first line is the command line; the following lines
