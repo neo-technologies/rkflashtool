@@ -36,6 +36,10 @@
 #include "rkcrc.h"
 #include "version.h"
 
+#ifndef _WIN32
+#define O_BINARY 0
+#endif
+
 static const char headers[2][4] = { "KRNL", "PARM" };
 
 static const char *const strings[2] = { "info", "fatal" };
@@ -76,13 +80,13 @@ int main(int argc, char *argv[]) {
                     RKFLASHTOOL_VERSION_MINOR, progname);
 
 
-    if ((in = open(argv[0], O_RDONLY)) == -1)
+    if ((in = open(argv[0], O_BINARY | O_RDONLY)) == -1)
         fatal("%s: %s\n", argv[0], strerror(errno));
 
     if (fstat(in, &st) != 0)
         fatal("%s: %s\n", argv[0], strerror(errno));
 
-    if ((out = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1)
+    if ((out = open(argv[1], O_BINARY | O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1)
         fatal("%s: %s\n", argv[1], strerror(errno));
 
     if (which >= 0) {

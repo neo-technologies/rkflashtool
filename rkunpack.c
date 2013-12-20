@@ -44,6 +44,8 @@
 int _mkdir(const char *);
 #include <windows.h>
 HANDLE fm;
+#else
+#define O_BINARY 0
 #endif
 
 static uint8_t *buf;
@@ -69,7 +71,7 @@ static void info_and_fatal(const int s, const char *f, ...) {
 
 static void write_file(const char *path, uint8_t *buffer, unsigned int length) {
     int img;
-    if ((img = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1 ||
+    if ((img = open(path, O_BINARY | O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1 ||
                write(img, buffer, length) == -1 ||
                close(img) == -1)
         fatal("%s: %s\n", path, strerror(errno));
@@ -172,7 +174,7 @@ int main(int argc, char *argv[]) {
                RKFLASHTOOL_VERSION_MAJOR,
                RKFLASHTOOL_VERSION_MINOR, argv[0]);
 
-    if ((fd = open(argv[1], O_RDONLY)) == -1)
+    if ((fd = open(argv[1], O_BINARY | O_RDONLY)) == -1)
         fatal("%s: %s\n", argv[1], strerror(errno));
 
     if ((size = lseek(fd, 0, SEEK_END)) == -1)
