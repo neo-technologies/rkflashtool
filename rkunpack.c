@@ -42,6 +42,8 @@
 #undef mkdir
 #define mkdir(a,b) _mkdir(a)
 int _mkdir(const char *);
+#include <windows.h>
+HANDLE fm;
 #endif
 
 static uint8_t *buf;
@@ -176,9 +178,15 @@ int main(int argc, char *argv[]) {
     if ((size = lseek(fd, 0, SEEK_END)) == -1)
         fatal("%s: %s\n", argv[1], strerror(errno));
 
+#ifdef _WIN32
+    fm  = CreateFileMapping((HANDLE)_get_osfhandle(fd), NULL, PAGE_READONLY, 0, 0, NULL);
+    buf = MapViewOfFile(fm, FILE_MAP_READ, 0, 0, 0);
+    if (!buf) fatal("%s: cannot create MapView of File\n", argv[1]);
+#else
     if ((buf = mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_FILE, fd, 0))
                                                         == MAP_FAILED)
         fatal("%s: %s\n", argv[1], strerror(errno));
+#endif
 
          if (!memcmp(buf, "RKAF", 4)) unpack_rkaf();
     else if (!memcmp(buf, "RKFW", 4)) unpack_rkfw();
@@ -186,7 +194,13 @@ int main(int argc, char *argv[]) {
 
     printf("unpacked\n");
 
+#ifdef _WIN32
+    CloseHandle(fm);
+    UnmapViewOfFile(buf);
+#else
     munmap(buf, size);
+#endif
+
     close(fd);
 
     return 0;
