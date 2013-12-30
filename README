@@ -127,3 +127,17 @@ sudo make install
 
 Replace i686-w64-mingw32 with x86_64-w64-mingw32 to do a win64 build.
 
+
+
+Scripts on windows
+------------------
+
+To run the bash scripts (rkmisc, rkparameters, etc...) on Windows, you
+need to install MSYS (part of MinGW). The easiest way is through the MinGW
+installer. You need at least msys-bash and msys-coreutils (for dd). Make
+sure you have e.g. C:\MinGW\msys\1.0\bin and C:\rkflashtool in your %PATH%
+variable. The easiest way to run the scripts is from the bash command line.
+If you insist on using cmd.exe, you need to call bash with the script's
+full filename (including its path) as its first argument. You could turn
+that into a .bat file if you want.
+
