@@ -6,6 +6,8 @@ MINOR=`grep MINOR version.h | { read A B C; echo $C; }`
 NAME=rkflashtool-$MAJOR.$MINOR
 DIR=$NAME-src
 
+SCRIPTS="rkparameters rkparametersblock rkmisc rkpad rkunsign"
+
 rm -rf $DIR
 mkdir $DIR
 
@@ -15,12 +17,9 @@ cp -a \
     rkcrc.c \
     rkcrc.h \
     rkunpack.c \
-    rkparameters \
-    rkparametersblock \
-    rkmisc \
-    rkpad \
-    rkunsign \
+    $SCRIPTS \
     README \
+    examples \
     $DIR
 
 tar cvzf $DIR.tar.gz $DIR
@@ -35,11 +34,13 @@ echo trying win32/win64 cross-builds...
 rm -f rkflashtool.exe rkcrc.exe rkunpack.exe
 make MACH=mingw CROSSPREFIX=i686-w64-mingw32- || exit 1
 
-zip -9 $NAME-win32-bin.zip rkflashtool.exe rkcrc.exe rkunpack.exe
+zip -9r $NAME-win32-bin.zip rkflashtool.exe rkcrc.exe rkunpack.exe $SCRIPTS \
+    examples
 
 rm -f rkflashtool.exe rkcrc.exe rkunpack.exe
 make MACH=mingw CROSSPREFIX=x86_64-w64-mingw32- || exit 1
 
-zip -9 $NAME-win64-bin.zip rkflashtool.exe rkcrc.exe rkunpack.exe
+zip -9r $NAME-win64-bin.zip rkflashtool.exe rkcrc.exe rkunpack.exe $SCRIPTS \
+    examples
 
 rm -f rkflashtool.exe rkcrc.exe rkunpack.exe
