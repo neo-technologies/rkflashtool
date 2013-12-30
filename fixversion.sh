@@ -3,6 +3,6 @@
 MAJOR=`grep MAJOR version.h | { read A B C; echo $C; }`
 MINOR=`grep MINOR version.h | { read A B C; echo $C; }`
 
-for i in rkparameters rkparametersblock rkmisc rkpad ; do
+for i in rkparameters rkparametersblock rkmisc rkpad rkunsign ; do
     sed -i "s/^\(MAJOR\)=.*/\1=$MAJOR/; s/.*\(MINOR\)=.*/\1=$MINOR/" $i
 done
