@@ -17,6 +17,7 @@ cp -a \
     rkcrc.c \
     rkcrc.h \
     rkunpack.c \
+    version.h \
     $SCRIPTS \
     README \
     examples \
