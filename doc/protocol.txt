@@ -19,6 +19,7 @@ request
 [21]    00 
 
 [22]    01 02           number of sectors (512 bytes/sector), big endian
+                        or number of bytes (e.g. ReadSDRAM)
 
 [24]    00 00 00        reserved
 [27]    00 00 00 00     reserved
