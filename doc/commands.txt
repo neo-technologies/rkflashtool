@@ -1,3 +1,39 @@
+RK Protocol
+
+
+request
+=======
+
+char        USBC[4];
+uint32_t    random;         // is echoed by device in result/status response
+uint32_t    reserved;
+
+uint8_t     flag;
+uint8_t     reserved2;
+uint8_t     foo;
+uint8_t     command;
+uint8_t     bar;
+
+uint32_t    address_big_endian;
+uint16_t    reserved3;
+uint32_t    num_sectors_big_endian;
+uint32_t    reserved4;
+-------- +
+31 bytes
+
+
+
+response
+========
+
+char        USBS[4];
+uint32_t    random;
+uint32_t    foo;
+uint8_t     error_flag;
+-------- +
+13 bytes
+
+
 
 12      14      15
 flag    foo     cmd
