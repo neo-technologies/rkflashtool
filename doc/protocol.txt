@@ -44,16 +44,20 @@ response
 
 13 bytes
 
+notes:
+
+[08-11] are two 16-bit big endian words with an error code if error_flag == 1
+
 
 
 12      14      15
 flag    foo     cmd
 -------+-------+-------
-0x80    0x06    0x00    TestUnitReady
-0x80    0x06    0x01    ReadFlashID
-0x80    0x06    0x1a    ReadFlashInfo
-0x80    0x06    0x1b    ReadChipInfo
-0x80    0x06    0x20    ReadEfuse
+0x80    0x06    0x00    TestUnitReady             0 bytes
+0x80    0x06    0x01    ReadFlashID               5 bytes
+0x80    0x06    0x1a    ReadFlashInfo           512 bytes
+0x80    0x06    0x1b    ReadChipInfo             16 bytes
+0x80    0x06    0x20    ReadEfuse                 8 bytes
 
 0x00    0x06    0x02    SetDeviceInfo
 0x00    0x06    0x16    EraseSystemDisk
