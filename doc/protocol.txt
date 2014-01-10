@@ -32,6 +32,9 @@ notes:
 
 [17-20] and [22-25] seem to form a full 64-bit address to jump to
 
+[16-19] four fuses during WriteEfuse
+[20-23] zero or next four fuses
+
 
 response
 ========
