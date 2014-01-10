@@ -14,14 +14,17 @@ request
 [15]    01              command
 [16]    00              bar
 
-[17]    01 02 03 04     address, big endian
+[17]    01 02 03 04     address, in sectors, big endian
 
 [21]    00 
 
 [22]    01 02           number of sectors (512 bytes/sector), big endian
                         or number of bytes (e.g. ReadSDRAM)
 
-[24]    00 00 00        reserved
+[24]    00 00           possibly index in sector, 0-511, makes full address
+                        for ExecuteSDRAM
+
+[26]    00              reserved
 [27]    00 00 00 00     reserved
 
 31 bytes
