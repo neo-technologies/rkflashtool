@@ -21,14 +21,16 @@ request
 [22]    01 02           number of sectors (512 bytes/sector), big endian
                         or number of bytes (e.g. ReadSDRAM)
 
-[24]    00 00           possibly index in sector, 0-511, makes full address
-                        for ExecuteSDRAM
+[24]    00 00           used during ExecuteSDRAM
 
 [26]    00              reserved
 [27]    00 00 00 00     reserved
 
 31 bytes
 
+notes:
+
+[17-20] and [22-25] seem to form a full 64-bit address to jump to
 
 
 response
