@@ -4,21 +4,21 @@ RK Protocol
 request
 =======
 
-char        USBC[4];
-uint32_t    random;         // is echoed by device in result/status response
-uint32_t    reserved;
+[00]    55 53 42 43     U S B C
+[04]    01 02 03 04     random value, echoed by device in response
+[08]    00 00 00 00     reserved
 
-uint8_t     flag;
-uint8_t     reserved2;
-uint8_t     foo;
-uint8_t     command;
-uint8_t     bar;
+[12]    80              flag
+[13]    00              reserved
+[14]    06              foo
+[15]    01              command
+[16]    00              bar
 
-uint32_t    address_big_endian;
-uint16_t    reserved3;
-uint32_t    num_sectors_big_endian;
-uint32_t    reserved4;
--------- +
+[17]    01 02 03 04     address, big endian
+[21]    00 00           reserved
+[23]    01 02 03 04     size, big_endian
+[27]    00 00 00 00     reserved
+
 31 bytes
 
 
@@ -26,11 +26,12 @@ uint32_t    reserved4;
 response
 ========
 
-char        USBS[4];
-uint32_t    random;
-uint32_t    foo;
-uint8_t     error_flag;
--------- +
+[00]    55 53 42 53     U S B S
+[04]    01 02 03 04     random
+[08]    00 00 00        unknown
+[11]    06              unknown, sometimes 6, sometimes 0
+[12]    01              error_flag, 0 = OK, 1 = ERROR
+
 13 bytes
 
 
