@@ -15,8 +15,12 @@ request
 [16]    00              bar
 
 [17]    01 02 03 04     address, big endian
-[21]    00 00           reserved
-[23]    01 02 03 04     size, big_endian
+
+[21]    00 
+
+[22]    01 02           number of sectors (512 bytes/sector), big endian
+
+[24]    00 00 00        reserved
 [27]    00 00 00 00     reserved
 
 31 bytes
