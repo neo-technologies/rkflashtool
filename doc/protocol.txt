@@ -58,7 +58,7 @@ flag    foo     cmd
 -------+-------+-------
 0x80    0x06    0x00    TestUnitReady             0
 0x80    0x06    0x01    ReadFlashID               5 bytes
-0x80    0x06    0x1a    ReadFlashInfo           512 bytes
+0x80    0x06    0x1a    ReadFlashInfo           11|512 bytes
 0x80    0x06    0x1b    ReadChipInfo             16 bytes
 0x80    0x06    0x20    ReadEfuse                 8 bytes
 
@@ -74,7 +74,7 @@ flag    foo     cmd
 0x80    0x0a    0x21
 
 0x00    0x0a    0x05    WriteSector             512|528 bytes
-0x00    0x0a    0x06
+0x00    0x0a    0x06    EraseSectors              0
 0x00    0x0a    0x0b
 0x00    0x0a    0x15    WriteLBA              n*512 bytes
 0x00    0x0a    0x18    WriteSDRAM                n bytes
@@ -87,4 +87,26 @@ flag    foo     cmd
 
 0x00    0x00    0x1c    LowerFormat               0
 0x00    0x00    0x30
+
+
+
+
+11|512 bytes of FlashInfo [0-511]
+---------------------------------
+
+[0-3]   =
+[4-5]   =
+[6-7]   =
+[8]     =
+
+[9]     =       00 - Samsung
+                01 - Toshiba
+                02 - Hynix
+                03 - Infineon
+                04 - Renesas
+                05 - ST
+                06 - Intel
+
+[10]    =
+
 
