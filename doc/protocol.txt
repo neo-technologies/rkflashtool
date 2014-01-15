@@ -86,7 +86,7 @@ flag    foo     cmd
 0x80    0x10    0x08    ReadSpare                 n bytes
 
 0x00    0x00    0x1c    LowerFormat               0
-0x00    0x00    0x30
+0x00    0x00    0x30    write 16k to device     16k bytes, resp is 18 bytes
 
 
 
