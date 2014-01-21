@@ -128,14 +128,17 @@ static void info_and_fatal(const int s, char *f, ...) {
 static void usage(void) {
     fatal("usage:\n"
           "\trkflashtool b                   \treboot device\n"
-          "\trkflashtool m offset size >file \tread 0x80 bytes DRAM\n"
-          "\trkflashtool i offset blocks >file \tread IDB flash\n"
-          "\trkflashtool r offset size >file \tread flash\n"
-          "\trkflashtool w offset size <file \twrite flash\n"
+          "\trkflashtool i offset nsectors >outfile \tread IDBlocks\n"
+//          "\trkflashtool j offset nsectors <infile  \twrite IDBlocks\n"
+          "\trkflashtool m offset nbytes   >outfile \tread SDRAM\n"
+//          "\trkflashtool n offset nbytes   <infile  \twrite SDRAM\n"
+          "\trkflashtool r offset nsectors >outfile \tread flash\n"
+          "\trkflashtool w offset nsectors <infile  \twrite flash\n"
+//          "\trkflashtool f                 >outfile \tread fuses\n"
+//          "\trkflashtool g                 <infile  \twrite fuses\n"
           "\trkflashtool p >file             \tfetch parameters\n"
-          "\trkflashtool e offset size       \terase flash (fill with 0xff)\n"
-          "\n"
-          "\toffset and size are in units of 512 bytes\n");
+          "\trkflashtool e offset nsectors   \terase flash (fill with 0xff)\n"
+         );
 }
 
 static void send_cmd(uint32_t command, uint32_t offset, uint16_t nsectors) {
