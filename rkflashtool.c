@@ -47,12 +47,6 @@ int _CRT_fmode = _O_BINARY;
 #define RKFT_MEM_INCR       0x80
 #define RKFT_OFF_INCR       (RKFT_BLOCKSIZE>>9)
 
-#define RKFT_CID            4
-#define RKFT_FLAG           12
-#define RKFT_COMMAND        13
-#define RKFT_OFFSET         17
-#define RKFT_SIZE           23
-
 #define RKFT_CMD_TESTUNITREADY      0x80000600
 #define RKFT_CMD_READFLASHID        0x80000601
 #define RKFT_CMD_READFLASHINFO      0x8000061a
@@ -112,10 +106,9 @@ const t_pid pidtab[] = {
     { 0, "" },
 };
 
-static uint8_t cmd[31], res[13];
+static uint8_t cmd[31], res[13], buf[RKFT_BLOCKSIZE];
 static libusb_context *c;
 static libusb_device_handle *h = NULL;
-static uint8_t buf[RKFT_BLOCKSIZE];
 static int tmp;
 
 static const char *const strings[2] = { "info", "fatal" };
