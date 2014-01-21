@@ -115,7 +115,7 @@ const t_pid pidtab[] = {
 static uint8_t cmd[31], res[13];
 static libusb_context *c;
 static libusb_device_handle *h = NULL;
-static uint8_t buf[RKFT_BLOCKSIZE], cid;
+static uint8_t buf[RKFT_BLOCKSIZE];
 static int tmp;
 
 static const char *const strings[2] = { "info", "fatal" };
@@ -145,7 +145,7 @@ static void usage(void) {
           "\toffset and size are in units of 512 bytes\n");
 }
 
-static void send_cmd2(uint32_t command, uint32_t offset, uint16_t nsectors) {
+static void send_cmd(uint32_t command, uint32_t offset, uint16_t nsectors) {
     long int r = random();
 
     memset(cmd, 0 , 31);
@@ -155,18 +155,6 @@ static void send_cmd2(uint32_t command, uint32_t offset, uint16_t nsectors) {
     if (offset)     SETBE32(cmd+17, offset);
     if (nsectors)   SETBE16(cmd+22, nsectors);
     if (command)    SETBE32(cmd+12, command);
-
-    libusb_bulk_transfer(h, 2|LIBUSB_ENDPOINT_OUT, cmd, sizeof(cmd), &tmp, 0);
-}
-
-static void send_cmd(uint8_t flag,
-                     uint32_t command, uint32_t offset, uint8_t size) {
-    cmd[RKFT_CID ] = cid++;
-    cmd[RKFT_FLAG] = flag;
-    cmd[RKFT_SIZE] = size;
-
-    SETBE32(&cmd[RKFT_COMMAND], command);
-    SETBE32(&cmd[RKFT_OFFSET ], offset );
 
     libusb_bulk_transfer(h, 2|LIBUSB_ENDPOINT_OUT, cmd, sizeof(cmd), &tmp, 0);
 }
@@ -248,7 +236,7 @@ int main(int argc, char **argv) {
 
     /* Initialize bootloader interface */
 
-    send_cmd2(RKFT_CMD_TESTUNITREADY, 0, 0);
+    send_cmd(RKFT_CMD_TESTUNITREADY, 0, 0);
     recv_res();
     usleep(20*1000);
 
@@ -257,14 +245,14 @@ int main(int argc, char **argv) {
     switch(action) {
     case 'b':   /* Reboot device */
         info("rebooting device...\n");
-        send_cmd2(RKFT_CMD_RESETDEVICE, 0, 0);
+        send_cmd(RKFT_CMD_RESETDEVICE, 0, 0);
         recv_res();
         break;
     case 'r':   /* Read FLASH */
         while (size > 0) {
             info("reading flash memory at offset 0x%08x\n", offset);
 
-            send_cmd2(RKFT_CMD_READLBA, offset, RKFT_OFF_INCR);
+            send_cmd(RKFT_CMD_READLBA, offset, RKFT_OFF_INCR);
             recv_buf(RKFT_BLOCKSIZE);
             recv_res();
 
@@ -282,7 +270,7 @@ int main(int argc, char **argv) {
             if (read(0, buf, RKFT_BLOCKSIZE) <= 0)
                 fatal("premature end-of-file reached.\n");
 
-            send_cmd2(RKFT_CMD_WRITELBA, offset, RKFT_OFF_INCR);
+            send_cmd(RKFT_CMD_WRITELBA, offset, RKFT_OFF_INCR);
             send_buf(RKFT_BLOCKSIZE);
             recv_res();
 
@@ -296,7 +284,7 @@ int main(int argc, char **argv) {
 
             info("reading parameters at offset 0x%08x\n", offset);
 
-            send_cmd2(RKFT_CMD_READLBA, offset, RKFT_OFF_INCR);
+            send_cmd(RKFT_CMD_READLBA, offset, RKFT_OFF_INCR);
             recv_buf(RKFT_BLOCKSIZE);
             recv_res();
             info("rkcrc: 0x%08x\n", *p++);
@@ -314,7 +302,7 @@ int main(int argc, char **argv) {
             int sizeRead = size > RKFT_MEM_INCR ? RKFT_MEM_INCR : size;
             info("reading memory at offset 0x%08x size %x\n", offset, sizeRead);
 
-            send_cmd2(RKFT_CMD_READSDRAM, offset-0x60000000, sizeRead);
+            send_cmd(RKFT_CMD_READSDRAM, offset-0x60000000, sizeRead);
             recv_buf(sizeRead);
             recv_res();
 
@@ -331,7 +319,7 @@ int main(int argc, char **argv) {
             int sizeRead = size > RKFT_IDB_INCR ? RKFT_IDB_INCR : size;
             info("reading IDB flash memory at offset 0x%08x\n", offset);
              
-            send_cmd2(RKFT_CMD_READSECTOR, offset, sizeRead);
+            send_cmd(RKFT_CMD_READSECTOR, offset, sizeRead);
             recv_buf(RKFT_IDB_BLOCKSIZE * sizeRead);
             recv_res();
              
@@ -348,7 +336,7 @@ int main(int argc, char **argv) {
         while (size > 0) {
                 info("erasing flash memory at offset 0x%08x\n", offset);
 
-                send_cmd2(RKFT_CMD_WRITELBA, offset, RKFT_OFF_INCR);
+                send_cmd(RKFT_CMD_WRITELBA, offset, RKFT_OFF_INCR);
                 send_buf(RKFT_BLOCKSIZE);
                 recv_res();
 
