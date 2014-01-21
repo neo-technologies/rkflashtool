@@ -276,15 +276,14 @@ int main(int argc, char **argv) {
         break;
     case 'p':   /* Retreive parameters */
         {
-            uint32_t *p = (uint32_t*)buf;
+            uint32_t *p = (uint32_t*)buf+1;
 
             info("reading parameters at offset 0x%08x\n", offset);
 
             send_cmd(RKFT_CMD_READLBA, offset, RKFT_OFF_INCR);
             recv_buf(RKFT_BLOCKSIZE);
             recv_res();
-            info("rkcrc: 0x%08x\n", *p++);
-            size = *p;;
+            size = *p;
             info("size:  0x%08x\n", size);
 
             if ( write(1, &buf[8], size) <= 0) {
