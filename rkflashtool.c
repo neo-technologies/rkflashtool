@@ -47,10 +47,6 @@ int _CRT_fmode = _O_BINARY;
 #define RKFT_MEM_INCR       0x80
 #define RKFT_OFF_INCR       (RKFT_BLOCKSIZE>>9)
 
-#ifndef RKFT_DISPLAY
-#define RKFT_DISPLAY        0x100
-#endif
-
 #define RKFT_CID            4
 #define RKFT_FLAG           12
 #define RKFT_COMMAND        13
@@ -116,9 +112,9 @@ const t_pid pidtab[] = {
     { 0, "" },
 };
 
-static uint8_t cmd[31] = { 'U', 'S', 'B', 'C', };
-static uint8_t res[13];
-
+static uint8_t cmd[31], res[13];
+static libusb_context *c;
+static libusb_device_handle *h = NULL;
 static uint8_t buf[RKFT_BLOCKSIZE], cid;
 static int tmp;
 
@@ -149,20 +145,21 @@ static void usage(void) {
           "\toffset and size are in units of 512 bytes\n");
 }
 
-static void init_cmd_buf(uint8_t *buf, uint32_t command,
-                         uint32_t offset, uint16_t nsectors) {
+static void send_cmd2(uint32_t command, uint32_t offset, uint16_t nsectors) {
     long int r = random();
 
-    memset(buf, 0 , 31);
-    memcpy(buf, "USBC", 4);
+    memset(cmd, 0 , 31);
+    memcpy(cmd, "USBC", 4);
 
-    if (r)          SETBE32(buf+4, r);
-    if (offset)     SETBE32(buf+17, offset);
-    if (nsectors)   SETBE16(buf+22, nsectors);
-    if (command)    SETBE32(buf+12, command);
+    if (r)          SETBE32(cmd+4, r);
+    if (offset)     SETBE32(cmd+17, offset);
+    if (nsectors)   SETBE16(cmd+22, nsectors);
+    if (command)    SETBE32(cmd+12, command);
+
+    libusb_bulk_transfer(h, 2|LIBUSB_ENDPOINT_OUT, cmd, sizeof(cmd), &tmp, 0);
 }
 
-static void send_cmd(libusb_device_handle *h, int e, uint8_t flag,
+static void send_cmd(uint8_t flag,
                      uint32_t command, uint32_t offset, uint8_t size) {
     cmd[RKFT_CID ] = cid++;
     cmd[RKFT_FLAG] = flag;
@@ -171,24 +168,22 @@ static void send_cmd(libusb_device_handle *h, int e, uint8_t flag,
     SETBE32(&cmd[RKFT_COMMAND], command);
     SETBE32(&cmd[RKFT_OFFSET ], offset );
 
-    libusb_bulk_transfer(h, e|LIBUSB_ENDPOINT_OUT, cmd, sizeof(cmd), &tmp, 0);
+    libusb_bulk_transfer(h, 2|LIBUSB_ENDPOINT_OUT, cmd, sizeof(cmd), &tmp, 0);
 }
 
-#define send_buf(h,e,s) libusb_bulk_transfer(h, e|LIBUSB_ENDPOINT_OUT, \
+#define send_buf(s) libusb_bulk_transfer(h, 2|LIBUSB_ENDPOINT_OUT, \
                                              buf, s, &tmp, 0)
 
-#define recv_res(h,e) libusb_bulk_transfer(h, e|LIBUSB_ENDPOINT_IN, \
+#define recv_res()  libusb_bulk_transfer(h, 1|LIBUSB_ENDPOINT_IN, \
                                            res, sizeof(res), &tmp, 0)
 
-#define recv_buf(h,e,s) libusb_bulk_transfer(h, e|LIBUSB_ENDPOINT_IN, \
+#define recv_buf(s) libusb_bulk_transfer(h, 1|LIBUSB_ENDPOINT_IN, \
                                              buf, s, &tmp, 0)
 
 #define NEXT do { argc--;argv++; }while(0)
 
 int main(int argc, char **argv) {
     const t_pid *ppid = &pidtab[0];
-    libusb_context *c;
-    libusb_device_handle *h = NULL;
     int offset = 0, size = 0;
     char action;
 
@@ -253,8 +248,8 @@ int main(int argc, char **argv) {
 
     /* Initialize bootloader interface */
 
-    send_cmd(h, 2, 0x80, 0x00060000, 0x00000000, 0x00);
-    recv_res(h, 1);
+    send_cmd2(RKFT_CMD_TESTUNITREADY, 0, 0);
+    recv_res();
     usleep(20*1000);
 
     /* Check and execute command */
@@ -262,16 +257,16 @@ int main(int argc, char **argv) {
     switch(action) {
     case 'b':   /* Reboot device */
         info("rebooting device...\n");
-        send_cmd(h, 2, 0x00, 0x0006ff00, 0x00000000, 0x00);
-        recv_res(h, 1);
+        send_cmd2(RKFT_CMD_RESETDEVICE, 0, 0);
+        recv_res();
         break;
     case 'r':   /* Read FLASH */
         while (size > 0) {
             info("reading flash memory at offset 0x%08x\n", offset);
 
-            send_cmd(h, 2, 0x80, 0x000a1400, offset, RKFT_OFF_INCR);
-            recv_buf(h, 1, RKFT_BLOCKSIZE);
-            recv_res(h, 1);
+            send_cmd2(RKFT_CMD_READLBA, offset, RKFT_OFF_INCR);
+            recv_buf(RKFT_BLOCKSIZE);
+            recv_res();
 
             if ( write(1, buf, RKFT_BLOCKSIZE) <= 0)
                 fatal("Write error! Disk full?\n");
@@ -287,9 +282,9 @@ int main(int argc, char **argv) {
             if (read(0, buf, RKFT_BLOCKSIZE) <= 0)
                 fatal("premature end-of-file reached.\n");
 
-            send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
-            send_buf(h, 2, RKFT_BLOCKSIZE);
-            recv_res(h, 1);
+            send_cmd2(RKFT_CMD_WRITELBA, offset, RKFT_OFF_INCR);
+            send_buf(RKFT_BLOCKSIZE);
+            recv_res();
 
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
@@ -301,9 +296,9 @@ int main(int argc, char **argv) {
 
             info("reading parameters at offset 0x%08x\n", offset);
 
-            send_cmd(h, 2, 0x80, 0x000a1400, offset, RKFT_OFF_INCR);
-            recv_buf(h, 1, RKFT_BLOCKSIZE);
-            recv_res(h, 1);
+            send_cmd2(RKFT_CMD_READLBA, offset, RKFT_OFF_INCR);
+            recv_buf(RKFT_BLOCKSIZE);
+            recv_res();
             info("rkcrc: 0x%08x\n", *p++);
             size = *p;;
             info("size:  0x%08x\n", size);
@@ -319,9 +314,9 @@ int main(int argc, char **argv) {
             int sizeRead = size > RKFT_MEM_INCR ? RKFT_MEM_INCR : size;
             info("reading memory at offset 0x%08x size %x\n", offset, sizeRead);
 
-            send_cmd(h, 2, 0x80, 0x000a1700, offset-0x60000000, sizeRead);
-            recv_buf(h, 1, sizeRead);
-            recv_res(h, 1);
+            send_cmd2(RKFT_CMD_READSDRAM, offset-0x60000000, sizeRead);
+            recv_buf(sizeRead);
+            recv_res();
 
             if ( write(1, buf, sizeRead) <= 0) {
                 fatal("Write error! Disk full?\n");
@@ -336,9 +331,9 @@ int main(int argc, char **argv) {
             int sizeRead = size > RKFT_IDB_INCR ? RKFT_IDB_INCR : size;
             info("reading IDB flash memory at offset 0x%08x\n", offset);
              
-            send_cmd(h, 2, 0x80, 0x000a0400, offset, sizeRead);
-            recv_buf(h, 1, RKFT_IDB_BLOCKSIZE * sizeRead);
-            recv_res(h, 1);
+            send_cmd2(RKFT_CMD_READSECTOR, offset, sizeRead);
+            recv_buf(RKFT_IDB_BLOCKSIZE * sizeRead);
+            recv_res();
              
             if ( write(1, buf, RKFT_IDB_BLOCKSIZE * sizeRead) <= 0) {
                 fatal("Write error! Disk full?\n");
@@ -351,12 +346,11 @@ int main(int argc, char **argv) {
     case 'e':   /* Erase flash */
         memset(buf, 0xff, RKFT_BLOCKSIZE);
         while (size > 0) {
-                if (offset % RKFT_DISPLAY == 0)
-                        info("erasing flash memory at offset 0x%08x\n", offset);
+                info("erasing flash memory at offset 0x%08x\n", offset);
 
-                send_cmd(h, 2, 0x80, 0x000a1500, offset, RKFT_OFF_INCR);
-                send_buf(h, 2, RKFT_BLOCKSIZE);
-                recv_res(h, 1);
+                send_cmd2(RKFT_CMD_WRITELBA, offset, RKFT_OFF_INCR);
+                send_buf(RKFT_BLOCKSIZE);
+                recv_res();
 
                 offset += RKFT_OFF_INCR;
                 size   -= RKFT_OFF_INCR;
