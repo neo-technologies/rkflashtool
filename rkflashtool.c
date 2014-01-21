@@ -1,7 +1,7 @@
 /* rkflashtool - for RockChip based devices.
  *               (RK2808, RK2818, RK2918, RK2928, RK3066, RK3068 and RK3188)
  *
- * Copyright (C) 2010-2013 by Ivo van Poorten, Fukaumi Naoki, Guenter Knauf,
+ * Copyright (C) 2010-2014 by Ivo van Poorten, Fukaumi Naoki, Guenter Knauf,
  *                            Ulrich Prinz, Steve Wilson
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,10 +57,49 @@ int _CRT_fmode = _O_BINARY;
 #define RKFT_OFFSET         17
 #define RKFT_SIZE           23
 
-#define SETBE32(a, v) ((uint8_t*)a)[3] =  v      & 0xff; \
-                      ((uint8_t*)a)[2] = (v>>8 ) & 0xff; \
-                      ((uint8_t*)a)[1] = (v>>16) & 0xff; \
-                      ((uint8_t*)a)[0] = (v>>24) & 0xff
+#define RKFT_CMD_TESTUNITREADY      0x80000600
+#define RKFT_CMD_READFLASHID        0x80000601
+#define RKFT_CMD_READFLASHINFO      0x8000061a
+#define RKFT_CMD_READCHIPINFO       0x8000061b
+#define RKFT_CMD_READEFUSE          0x80000620
+
+#define RKFT_CMD_SETDEVICEINFO      0x00000602
+#define RKFT_CMD_ERASESYSTEMDISK    0x00000616
+#define RKFT_CMD_SETRESETFLASG      0x0000061e
+#define RKFT_CMD_RESETDEVICE        0x000006ff
+
+#define RKFT_CMD_TESTBADBLOCK       0x80000a03
+#define RKFT_CMD_READSECTOR         0x80000a04
+#define RKFT_CMD_READLBA            0x80000a14
+#define RKFT_CMD_READSDRAM          0x80000a17
+#define RKFT_CMD_UNKNOWN1           0x80000a21
+
+#define RKFT_CMD_WRITESECTOR        0x00000a05
+#define RKFT_CMD_ERASESECTORS       0x00000a06
+#define RKFT_CMD_UNKNOWN2           0x00000a0b
+#define RKFT_CMD_WRITELBA           0x00000a15
+#define RKFT_CMD_WRITESDRAM         0x00000a18
+#define RKFT_CMD_EXECUTESDRAM       0x00000a19
+#define RKFT_CMD_WRITEEFUSE         0x00000a1f
+#define RKFT_CMD_UNKNOWN3           0x00000a22
+
+#define RKFT_CMD_WRITESPARE         0x80001007
+#define RKFT_CMD_READSPARE          0x80001008
+
+#define RKFT_CMD_LOWERFORMAT        0x0000001c
+#define RKFT_CMD_WRITENKB           0x00000030
+
+#define SETBE16(a, v) do { \
+                        ((uint8_t*)a)[1] =  v      & 0xff; \
+                        ((uint8_t*)a)[0] = (v>>8 ) & 0xff; \
+                      } while(0)
+
+#define SETBE32(a, v) do { \
+                        ((uint8_t*)a)[3] =  v      & 0xff; \
+                        ((uint8_t*)a)[2] = (v>>8 ) & 0xff; \
+                        ((uint8_t*)a)[1] = (v>>16) & 0xff; \
+                        ((uint8_t*)a)[0] = (v>>24) & 0xff; \
+                      } while(0)
 
 typedef struct {
     uint16_t pid;
@@ -108,6 +147,19 @@ static void usage(void) {
           "\trkflashtool e offset size       \terase flash (fill with 0xff)\n"
           "\n"
           "\toffset and size are in units of 512 bytes\n");
+}
+
+static void init_cmd_buf(uint8_t *buf, uint32_t command,
+                         uint32_t offset, uint16_t nsectors) {
+    long int r = random();
+
+    memset(buf, 0 , 31);
+    memcpy(buf, "USBC", 4);
+
+    if (r)          SETBE32(buf+4, r);
+    if (offset)     SETBE32(buf+17, offset);
+    if (nsectors)   SETBE16(buf+22, nsectors);
+    if (command)    SETBE32(buf+12, command);
 }
 
 static void send_cmd(libusb_device_handle *h, int e, uint8_t flag,
