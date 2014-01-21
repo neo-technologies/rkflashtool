@@ -152,14 +152,17 @@ static void send_cmd(uint32_t command, uint32_t offset, uint16_t nsectors) {
     libusb_bulk_transfer(h, 2|LIBUSB_ENDPOINT_OUT, cmd, sizeof(cmd), &tmp, 0);
 }
 
-#define send_buf(s) libusb_bulk_transfer(h, 2|LIBUSB_ENDPOINT_OUT, \
-                                             buf, s, &tmp, 0)
+static void send_buf(unsigned int s) {
+    libusb_bulk_transfer(h, 2|LIBUSB_ENDPOINT_OUT, buf, s, &tmp, 0);
+}
 
-#define recv_res()  libusb_bulk_transfer(h, 1|LIBUSB_ENDPOINT_IN, \
-                                           res, sizeof(res), &tmp, 0)
+static void recv_res(void) {
+    libusb_bulk_transfer(h, 1|LIBUSB_ENDPOINT_IN, res, sizeof(res), &tmp, 0);
+}
 
-#define recv_buf(s) libusb_bulk_transfer(h, 1|LIBUSB_ENDPOINT_IN, \
-                                             buf, s, &tmp, 0)
+static void recv_buf(unsigned int s) {
+    libusb_bulk_transfer(h, 1|LIBUSB_ENDPOINT_IN, buf, s, &tmp, 0);
+}
 
 #define NEXT do { argc--;argv++; }while(0)
 
