@@ -91,12 +91,10 @@ int _CRT_fmode = _O_BINARY;
                         ((uint8_t*)a)[0] = (v>>24) & 0xff; \
                       } while(0)
 
-typedef struct {
+const struct t_pid {
     uint16_t pid;
-    char     name[8];
-} t_pid;
-
-const t_pid pidtab[] = {
+    char name[8];
+} pidtab[] = {
     { 0x281a, "RK2818" },
     { 0x290a, "RK2918" },
     { 0x292a, "RK2928" },
@@ -170,7 +168,7 @@ static void recv_buf(unsigned int s) {
 #define NEXT do { argc--;argv++; }while(0)
 
 int main(int argc, char **argv) {
-    const t_pid *ppid = &pidtab[0];
+    const struct t_pid *ppid = pidtab;
     int offset = 0, size = 0;
     char action;
 
