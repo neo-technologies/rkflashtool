@@ -91,9 +91,9 @@ int _CRT_fmode = _O_BINARY;
                         ((uint8_t*)a)[0] = (v>>24) & 0xff; \
                       } while(0)
 
-const struct t_pid {
-    uint16_t pid;
-    char name[8];
+static const struct t_pid {
+    const uint16_t pid;
+    const char name[8];
 } pidtab[] = {
     { 0x281a, "RK2818" },
     { 0x290a, "RK2918" },
@@ -195,7 +195,7 @@ int main(int argc, char **argv) {
     case 'p':
         if (argc) usage();
         offset = 0;
-        size = 1024;
+        size   = 1024;
         break; 
     default:
         usage();
