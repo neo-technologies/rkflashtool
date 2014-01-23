@@ -165,7 +165,7 @@ static void recv_buf(unsigned int s) {
     libusb_bulk_transfer(h, 1|LIBUSB_ENDPOINT_IN, buf, s, &tmp, 0);
 }
 
-#define NEXT do { argc--;argv++; }while(0)
+#define NEXT do { argc--;argv++; } while(0)
 
 int main(int argc, char **argv) {
     const struct t_pid *ppid = pidtab;
