@@ -253,7 +253,7 @@ int main(int argc, char **argv) {
             recv_buf(RKFT_BLOCKSIZE);
             recv_res();
 
-            if ( write(1, buf, RKFT_BLOCKSIZE) <= 0)
+            if (write(1, buf, RKFT_BLOCKSIZE) <= 0)
                 fatal("Write error! Disk full?\n");
             
             offset += RKFT_OFF_INCR;
@@ -287,7 +287,7 @@ int main(int argc, char **argv) {
             size = *p;
             info("size:  0x%08x\n", size);
 
-            if ( write(1, &buf[8], size) <= 0) {
+            if (write(1, &buf[8], size) <= 0) {
                 fatal("Write error! Disk full?\n");
                 size = 0;
             }
@@ -302,7 +302,7 @@ int main(int argc, char **argv) {
             recv_buf(sizeRead);
             recv_res();
 
-            if ( write(1, buf, sizeRead) <= 0) {
+            if (write(1, buf, sizeRead) <= 0) {
                 fatal("Write error! Disk full?\n");
                 size = 0;
             }
@@ -319,7 +319,7 @@ int main(int argc, char **argv) {
             recv_buf(RKFT_IDB_BLOCKSIZE * sizeRead);
             recv_res();
              
-            if ( write(1, buf, RKFT_IDB_BLOCKSIZE * sizeRead) <= 0) {
+            if (write(1, buf, RKFT_IDB_BLOCKSIZE * sizeRead) <= 0) {
                 fatal("Write error! Disk full?\n");
                 size = 0;
             }
@@ -339,7 +339,6 @@ int main(int argc, char **argv) {
                 offset += RKFT_OFF_INCR;
                 size   -= RKFT_OFF_INCR;
         }
-        fprintf(stderr, "\n");
         break;
     default:
         break;
