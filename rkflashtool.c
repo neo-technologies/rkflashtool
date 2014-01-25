@@ -287,10 +287,8 @@ int main(int argc, char **argv) {
             size = *p;
             info("size:  0x%08x\n", size);
 
-            if (write(1, &buf[8], size) <= 0) {
+            if (write(1, &buf[8], size) <= 0)
                 fatal("Write error! Disk full?\n");
-                size = 0;
-            }
         }
         break;
     case 'm':   /* Read RAM */
@@ -302,10 +300,9 @@ int main(int argc, char **argv) {
             recv_buf(sizeRead);
             recv_res();
 
-            if (write(1, buf, sizeRead) <= 0) {
+            if (write(1, buf, sizeRead) <= 0)
                 fatal("Write error! Disk full?\n");
-                size = 0;
-            }
+
             offset += sizeRead;
             size -= sizeRead;
         }
@@ -319,10 +316,9 @@ int main(int argc, char **argv) {
             recv_buf(RKFT_IDB_BLOCKSIZE * sizeRead);
             recv_res();
              
-            if (write(1, buf, RKFT_IDB_BLOCKSIZE * sizeRead) <= 0) {
+            if (write(1, buf, RKFT_IDB_BLOCKSIZE * sizeRead) <= 0)
                 fatal("Write error! Disk full?\n");
-                size = 0;
-            }
+
             offset += sizeRead;
             size -= sizeRead;
         }
