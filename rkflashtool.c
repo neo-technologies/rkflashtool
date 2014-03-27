@@ -130,11 +130,14 @@ static void usage(void) {
 //          "\trkflashtool j offset nsectors <infile  \twrite IDBlocks\n"
           "\trkflashtool m offset nbytes   >outfile \tread SDRAM\n"
 //          "\trkflashtool n offset nbytes   <infile  \twrite SDRAM\n"
+          "\trkflashtool r partname >outfile \tread flash partition\n"
+          "\trkflashtool w partname <infile  \twrite flash partition\n"
           "\trkflashtool r offset nsectors >outfile \tread flash\n"
           "\trkflashtool w offset nsectors <infile  \twrite flash\n"
 //          "\trkflashtool f                 >outfile \tread fuses\n"
 //          "\trkflashtool g                 <infile  \twrite fuses\n"
           "\trkflashtool p >file             \tfetch parameters\n"
+          "\trkflashtool e partname          \terase flash (fill with 0xff)\n"
           "\trkflashtool e offset nsectors   \terase flash (fill with 0xff)\n"
          );
 }
@@ -169,8 +172,9 @@ static void recv_buf(unsigned int s) {
 
 int main(int argc, char **argv) {
     const struct t_pid *ppid = pidtab;
-    int offset = 0, size = 0;
+    unsigned int offset = 0, size = 0;
     char action;
+    char *partname = NULL;
 
     info("rkflashtool v%d.%d\n", RKFLASHTOOL_VERSION_MAJOR,
                                  RKFLASHTOOL_VERSION_MINOR);
@@ -186,6 +190,14 @@ int main(int argc, char **argv) {
     case 'e':
     case 'r': 
     case 'w': 
+        if (argc < 1 || argc > 2) usage();
+        if (argc == 1) {
+            partname = argv[0];
+        } else {
+            offset = strtoul(argv[0], NULL, 0);
+            size   = strtoul(argv[1], NULL, 0);
+        }
+        break;
     case 'm':
     case 'i':
         if (argc != 2) usage();
@@ -237,6 +249,82 @@ int main(int argc, char **argv) {
     recv_res();
     usleep(20*1000);
 
+    /* Parse partition name */
+    if (partname) {
+        info("working with partition: %s\n", partname);
+
+        /* Read parameters */
+        offset = 0;
+        send_cmd(RKFT_CMD_READLBA, offset, RKFT_OFF_INCR);
+        recv_buf(RKFT_BLOCKSIZE);
+        recv_res();
+
+        uint32_t *p = (uint32_t*)buf+1;
+        size = *p;
+
+        /* Search for mtdparts */
+        const char *param = (const char *)&buf[8];
+        const char *mtdparts = strstr(param, "mtdparts=");
+        if (!mtdparts) {
+            info("Error: 'mtdparts' not found in command line.\n");
+            goto exit;
+        }
+
+        /* Search for '(partition_name)' */
+        char partexp[256];
+        snprintf(partexp, 256, "(%s)", partname);
+        char *par = strstr(mtdparts, partexp);
+        if (!par) {
+            info("Error: Partition '%s' not found.\n", partname);
+            goto exit;
+        }
+
+        /* Cut string by NULL-ing just before (partition_name) */
+        par[0] = '\0';
+
+        /* Search for '@' sign */
+        char *arob = strrchr(mtdparts, '@');
+        if (!arob) {
+            info("Error: Bad syntax in mtdparts.\n");
+            goto exit;
+        }
+
+        offset = strtoul(arob+1, NULL, 0);
+        info("found offset: %#010x\n", offset);
+
+        /* Cut string by NULL-ing just before '@' sign */
+        arob[0] = '\0';
+
+        /* Search for '-' sign (if last partition) */
+        char *minus = strrchr(mtdparts, '-');
+        if (minus) {
+            size = UINT_MAX;
+            info("partition extends up to the end of NAND.\n");
+            goto action;
+        }
+
+        /* Search for ',' sign */
+        char *comma = strrchr(mtdparts, ',');
+        if (comma) {
+            size = strtoul(comma+1, NULL, 0);
+            info("found size: %#010x\n", size);
+            goto action;
+        }
+
+        /* Search for ':' sign (if first partition) */
+        char *colon = strrchr(mtdparts, ':');
+        if (colon) {
+            size = strtoul(colon+1, NULL, 0);
+            info("found size: %#010x\n", size);
+            goto action;
+        }
+
+        /* Error: size not found! */
+        info("Error: Bad syntax for partition size.\n");
+        goto exit;
+    }
+
+action:
     /* Check and execute command */
 
     switch(action) {
@@ -326,20 +414,21 @@ int main(int argc, char **argv) {
     case 'e':   /* Erase flash */
         memset(buf, 0xff, RKFT_BLOCKSIZE);
         while (size > 0) {
-                info("erasing flash memory at offset 0x%08x\n", offset);
+            info("erasing flash memory at offset 0x%08x\n", offset);
 
-                send_cmd(RKFT_CMD_WRITELBA, offset, RKFT_OFF_INCR);
-                send_buf(RKFT_BLOCKSIZE);
-                recv_res();
+            send_cmd(RKFT_CMD_WRITELBA, offset, RKFT_OFF_INCR);
+            send_buf(RKFT_BLOCKSIZE);
+            recv_res();
 
-                offset += RKFT_OFF_INCR;
-                size   -= RKFT_OFF_INCR;
+            offset += RKFT_OFF_INCR;
+            size   -= RKFT_OFF_INCR;
         }
         break;
     default:
         break;
     }
 
+exit:
     /* Disconnect and close all interfaces */
 
     libusb_release_interface(h, 0);

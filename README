@@ -35,6 +35,8 @@ sudo ./rkflashtool w 0x10000 0x8000 < recovery.img
 All available commands:
 
 rkflashtool b                         reboot device
+rkflashtool r partname >file          read flash partition
+rkflashtool w partname <file          write flash partition
 rkflashtool r offset size >file       read flash
 rkflashtool w offset size <file       write flash
 
@@ -42,6 +44,7 @@ rkflashtool m offset size >file       read 0x80 bytes DRAM
 rkflashtool i offset blocks >file     read IDB flash
 rkflashtool p >file                   fetch parameters
 
+rkflashtool e partname                erase flash (fill with 0xff)
 rkflashtool e offset size             erase flash (fill with 0xff)
 
 offset and size are in units (blocks) of 512 bytes (!)
