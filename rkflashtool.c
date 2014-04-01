@@ -46,6 +46,7 @@ int _CRT_fmode = _O_BINARY;
 #define RKFT_IDB_INCR       0x20
 #define RKFT_MEM_INCR       0x80
 #define RKFT_OFF_INCR       (RKFT_BLOCKSIZE>>9)
+#define MAX_PARAM_LENGTH    (128*512-12) /* cf. MAX_LOADER_PARAM in rkloader */
 
 #define RKFT_CMD_TESTUNITREADY      0x80000600
 #define RKFT_CMD_READFLASHID        0x80000601
@@ -190,7 +191,7 @@ static void recv_buf(unsigned int s) {
 
 int main(int argc, char **argv) {
     const struct t_pid *ppid = pidtab;
-    unsigned int offset = 0, size = 0;
+    int offset = 0, size = 0;
     char action;
     char *partname = NULL;
 
@@ -279,8 +280,11 @@ int main(int argc, char **argv) {
         recv_buf(RKFT_BLOCKSIZE);
         recv_res();
 
+        /* Check parameter length */
         uint32_t *p = (uint32_t*)buf+1;
         size = *p;
+        if (size < 0 || size > MAX_PARAM_LENGTH)
+          fatal("Bad parameter length!\n");
 
         /* Search for mtdparts */
         const char *param = (const char *)&buf[8];
@@ -401,6 +405,8 @@ action:
             recv_res();
             size = *p;
             info("size:  0x%08x\n", size);
+            if (size < 0 || size > MAX_PARAM_LENGTH)
+                fatal("Bad parameter length!\n");
 
             if (write(1, &buf[8], size) <= 0)
                 fatal("Write error! Disk full?\n");
