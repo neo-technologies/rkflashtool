@@ -352,8 +352,10 @@ action:
         while (size > 0) {
             info("writing flash memory at offset 0x%08x\n", offset);
 
-            if (read(0, buf, RKFT_BLOCKSIZE) <= 0)
-                fatal("premature end-of-file reached.\n");
+            if (read(0, buf, RKFT_BLOCKSIZE) <= 0) {
+                info("premature end-of-file reached.\n");
+                goto exit;
+            }
 
             send_cmd(RKFT_CMD_WRITELBA, offset, RKFT_OFF_INCR);
             send_buf(RKFT_BLOCKSIZE);
