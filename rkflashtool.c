@@ -335,7 +335,8 @@ action:
         break;
     case 'r':   /* Read FLASH */
         while (size > 0) {
-            info("reading flash memory at offset 0x%08x\n", offset);
+            fprintf(stderr, "\rrkflashtool: info: "
+                "reading flash memory at offset 0x%08x", offset);
 
             send_cmd(RKFT_CMD_READLBA, offset, RKFT_OFF_INCR);
             recv_buf(RKFT_BLOCKSIZE);
@@ -347,12 +348,15 @@ action:
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
         }
+        fprintf(stderr, "... Done!\n");
         break;
     case 'w':   /* Write FLASH */
         while (size > 0) {
-            info("writing flash memory at offset 0x%08x\n", offset);
+            fprintf(stderr, "\rrkflashtool: info: "
+                "writing flash memory at offset 0x%08x", offset);
 
             if (read(0, buf, RKFT_BLOCKSIZE) <= 0) {
+                fprintf(stderr, "... Done!\n");
                 info("premature end-of-file reached.\n");
                 goto exit;
             }
@@ -364,6 +368,7 @@ action:
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
         }
+        fprintf(stderr, "... Done!\n");
         break;
     case 'p':   /* Retreive parameters */
         {
