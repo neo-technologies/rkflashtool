@@ -132,7 +132,8 @@ static void usage(void) {
           "\trkflashtool i offset nsectors >outfile \tread IDBlocks\n"
 //          "\trkflashtool j offset nsectors <infile  \twrite IDBlocks\n"
           "\trkflashtool m offset nbytes   >outfile \tread SDRAM\n"
-//          "\trkflashtool n offset nbytes   <infile  \twrite SDRAM\n"
+          "\trkflashtool M offset nbytes   <infile  \twrite SDRAM\n"
+          "\trkflashtool B krnl_addr parm_addr      \texec SDRAM\n"
           "\trkflashtool r partname >outfile \tread flash partition\n"
           "\trkflashtool w partname <infile  \twrite flash partition\n"
           "\trkflashtool r offset nsectors >outfile \tread flash\n"
@@ -143,6 +144,20 @@ static void usage(void) {
           "\trkflashtool e partname          \terase flash (fill with 0xff)\n"
           "\trkflashtool e offset nsectors   \terase flash (fill with 0xff)\n"
          );
+}
+
+static void send_exec(uint32_t krnl_addr, uint32_t parm_addr) {
+    long int r = random();
+
+    memset(cmd, 0 , 31);
+    memcpy(cmd, "USBC", 4);
+
+    if (r)          SETBE32(cmd+4, r);
+    if (krnl_addr)  SETBE32(cmd+17, krnl_addr);
+    if (parm_addr)  SETBE32(cmd+22, parm_addr);
+                    SETBE32(cmd+12, RKFT_CMD_EXECUTESDRAM);
+
+    libusb_bulk_transfer(h, 2|LIBUSB_ENDPOINT_OUT, cmd, sizeof(cmd), &tmp, 0);
 }
 
 static void send_cmd(uint32_t command, uint32_t offset, uint16_t nsectors) {
@@ -202,6 +217,8 @@ int main(int argc, char **argv) {
         }
         break;
     case 'm':
+    case 'M':
+    case 'B':
     case 'i':
         if (argc != 2) usage();
         offset = strtoul(argv[0], NULL, 0);
@@ -391,7 +408,7 @@ action:
         break;
     case 'm':   /* Read RAM */
         while (size > 0) {
-            int sizeRead = size > RKFT_MEM_INCR ? RKFT_MEM_INCR : size;
+            int sizeRead = size > RKFT_BLOCKSIZE ? RKFT_BLOCKSIZE : size;
             info("reading memory at offset 0x%08x size %x\n", offset, sizeRead);
 
             send_cmd(RKFT_CMD_READSDRAM, offset-0x60000000, sizeRead);
@@ -404,6 +421,29 @@ action:
             offset += sizeRead;
             size -= sizeRead;
         }
+        break;
+    case 'M':   /* Write RAM */
+        while (size > 0) {
+            int sizeRead;
+            if ((sizeRead = read(0, buf, RKFT_BLOCKSIZE)) <= 0) {
+                fprintf(stderr, "... Done!\n");
+                info("premature end-of-file reached.\n");
+                goto exit;
+            }
+            info("writing memory at offset 0x%08x size %x\n", offset, sizeRead);
+
+            send_cmd(RKFT_CMD_WRITESDRAM, offset-0x60000000, sizeRead);
+            send_buf(sizeRead);
+            recv_res();
+
+            offset += sizeRead;
+            size -= sizeRead;
+        }
+        break;
+    case 'B':   /* Exec RAM */
+        info("booting kernel...\n");
+        send_exec(offset-0x60000000, size-0x60000000);
+        recv_res();
         break;
     case 'i':   /* Read IDB */
         while (size > 0) {
