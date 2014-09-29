@@ -92,16 +92,19 @@ int main(int argc, char *argv[]) {
     if (which >= 0) {
         memcpy(buf, headers[which], 4);
         PUT32LE(buf+4, st.st_size);
-        write(out, buf, 8);
+        if(write(out, buf, 8) != 8)
+          fatal("%s: write error\n", argv[1]);
     }
 
     while ((nr = read(in, buf, sizeof(buf))) > 0) {
         RKCRC(crc, buf, nr);
-        write(out, buf, nr);
+        if(write(out, buf, nr) != nr)
+          fatal("%s: write error\n", argv[1]);
     }
 
     PUT32LE(buf, crc);
-    write(out, buf, 4);
+    if(write(out, buf, 4) != 4)
+      fatal("%s: write error\n", argv[1]);
 
     close(out);
     close(in);
