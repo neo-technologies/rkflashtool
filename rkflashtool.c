@@ -197,18 +197,18 @@ int main(int argc, char **argv) {
 
     info("rkflashtool v%d.%d\n", RKFLASHTOOL_VERSION_MAJOR,
                                  RKFLASHTOOL_VERSION_MINOR);
-    
+
     NEXT; if (!argc) usage();
 
     action = **argv; NEXT;
 
     switch(action) {
     case 'b':
-        if (argc) usage(); 
+        if (argc) usage();
         break;
     case 'e':
-    case 'r': 
-    case 'w': 
+    case 'r':
+    case 'w':
         if (argc < 1 || argc > 2) usage();
         if (argc == 1) {
             partname = argv[0];
@@ -229,19 +229,19 @@ int main(int argc, char **argv) {
         if (argc) usage();
         offset = 0;
         size   = 1024;
-        break; 
+        break;
     default:
         usage();
     }
 
     /* Initialize libusb */
-    
+
     if (libusb_init(&c)) fatal("cannot init libusb\n");
 
     libusb_set_debug(c, 3);
-    
+
     /* Detect connected RockChip device */
-    
+
     while ( !h && ppid->pid) {
         h = libusb_open_device_with_vid_pid(c, 0x2207, ppid->pid);
         if (h) {
@@ -249,18 +249,18 @@ int main(int argc, char **argv) {
             break;
         }
         ppid++;
-    } 
+    }
     if (!h) fatal("cannot open device\n");
 
     /* Connect to device */
-    
+
     if (libusb_kernel_driver_active(h, 0) == 1) {
         info("kernel driver active\n");
         if (!libusb_detach_kernel_driver(h, 0))
             info("driver detached\n");
     }
 
-    if (libusb_claim_interface(h, 0) < 0)  
+    if (libusb_claim_interface(h, 0) < 0)
         fatal("cannot claim interface\n");
     info("interface claimed\n");
 
@@ -368,7 +368,7 @@ action:
 
             if (write(1, buf, RKFT_BLOCKSIZE) <= 0)
                 fatal("Write error! Disk full?\n");
-            
+
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
         }
@@ -455,11 +455,11 @@ action:
         while (size > 0) {
             int sizeRead = size > RKFT_IDB_INCR ? RKFT_IDB_INCR : size;
             info("reading IDB flash memory at offset 0x%08x\n", offset);
-             
+
             send_cmd(RKFT_CMD_READSECTOR, offset, sizeRead);
             recv_buf(RKFT_IDB_BLOCKSIZE * sizeRead);
             recv_res();
-             
+
             if (write(1, buf, RKFT_IDB_BLOCKSIZE * sizeRead) <= 0)
                 fatal("Write error! Disk full?\n");
 
