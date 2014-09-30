@@ -115,17 +115,18 @@ static int tmp;
 
 static const char *const strings[2] = { "info", "fatal" };
 
-static void info_and_fatal(const int s, char *f, ...) {
+static void info_and_fatal(const int s, const int cr, char *f, ...) {
     va_list ap;
     va_start(ap,f);
-    fprintf(stderr, "rkflashtool: %s: ", strings[s]);
+    fprintf(stderr, "%srkflashtool: %s: ", cr ? "\r" : "", strings[s]);
     vfprintf(stderr, f, ap);
     va_end(ap);
     if (s) exit(s);
 }
 
-#define info(...)   info_and_fatal(0, __VA_ARGS__)
-#define fatal(...)  info_and_fatal(1, __VA_ARGS__)
+#define info(...)    info_and_fatal(0, 0, __VA_ARGS__)
+#define infocr(...)  info_and_fatal(0, 1, __VA_ARGS__)
+#define fatal(...)   info_and_fatal(1, 0, __VA_ARGS__)
 
 static void usage(void) {
     fatal("usage:\n"
@@ -359,8 +360,7 @@ action:
         break;
     case 'r':   /* Read FLASH */
         while (size > 0) {
-            fprintf(stderr, "\rrkflashtool: info: "
-                "reading flash memory at offset 0x%08x", offset);
+            infocr("reading flash memory at offset 0x%08x", offset);
 
             send_cmd(RKFT_CMD_READLBA, offset, RKFT_OFF_INCR);
             recv_buf(RKFT_BLOCKSIZE);
@@ -376,8 +376,7 @@ action:
         break;
     case 'w':   /* Write FLASH */
         while (size > 0) {
-            fprintf(stderr, "\rrkflashtool: info: "
-                "writing flash memory at offset 0x%08x", offset);
+            infocr("writing flash memory at offset 0x%08x", offset);
 
             if (read(0, buf, RKFT_BLOCKSIZE) <= 0) {
                 fprintf(stderr, "... Done!\n");
@@ -415,7 +414,7 @@ action:
     case 'm':   /* Read RAM */
         while (size > 0) {
             int sizeRead = size > RKFT_BLOCKSIZE ? RKFT_BLOCKSIZE : size;
-            info("reading memory at offset 0x%08x size %x\n", offset, sizeRead);
+            infocr("reading memory at offset 0x%08x size %x", offset, sizeRead);
 
             send_cmd(RKFT_CMD_READSDRAM, offset-0x60000000, sizeRead);
             recv_buf(sizeRead);
@@ -427,16 +426,16 @@ action:
             offset += sizeRead;
             size -= sizeRead;
         }
+        fprintf(stderr, "... Done!\n");
         break;
     case 'M':   /* Write RAM */
         while (size > 0) {
             int sizeRead;
             if ((sizeRead = read(0, buf, RKFT_BLOCKSIZE)) <= 0) {
-                fprintf(stderr, "... Done!\n");
                 info("premature end-of-file reached.\n");
                 goto exit;
             }
-            info("writing memory at offset 0x%08x size %x\n", offset, sizeRead);
+            infocr("writing memory at offset 0x%08x size %x", offset, sizeRead);
 
             send_cmd(RKFT_CMD_WRITESDRAM, offset-0x60000000, sizeRead);
             send_buf(sizeRead);
@@ -445,6 +444,7 @@ action:
             offset += sizeRead;
             size -= sizeRead;
         }
+        fprintf(stderr, "... Done!\n");
         break;
     case 'B':   /* Exec RAM */
         info("booting kernel...\n");
