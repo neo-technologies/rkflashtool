@@ -19,6 +19,9 @@ endif
 ifeq ($(findstring cygwin,$(MACH)),cygwin)
 USE_RES	= 1
 endif
+ifeq ($(findstring darwin,$(MACH)),darwin)
+LDFLAGS =
+endif
 
 ifeq ($(USE_RES),1)
 RC	= $(CROSSPREFIX)windres
