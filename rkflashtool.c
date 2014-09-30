@@ -131,6 +131,7 @@ static void info_and_fatal(const int s, const int cr, char *f, ...) {
 static void usage(void) {
     fatal("usage:\n"
           "\trkflashtool b                   \treboot device\n"
+          "\trkflashtool v                   \tread chip version\n"
           "\trkflashtool i offset nsectors >outfile \tread IDBlocks\n"
 //          "\trkflashtool j offset nsectors <infile  \twrite IDBlocks\n"
           "\trkflashtool m offset nbytes   >outfile \tread SDRAM\n"
@@ -226,6 +227,7 @@ int main(int argc, char **argv) {
         offset = strtoul(argv[0], NULL, 0);
         size   = strtoul(argv[1], NULL, 0);
         break;
+    case 'v':
     case 'p':
         if (argc) usage();
         offset = 0;
@@ -479,6 +481,17 @@ action:
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
         }
+        break;
+    case 'v':   /* Read Chip Version */
+        send_cmd(RKFT_CMD_READCHIPINFO, 0, 0);
+        recv_buf(16);
+        recv_res();
+
+        info("chip version: %c%c%c%c-%c%c%c%c.%c%c.%c%c-%c%c%c%c\n",
+            *(buf +  3), *(buf +  2), *(buf +  1), *buf,
+            *(buf +  7), *(buf +  6), *(buf +  5), *(buf +  4),
+            *(buf + 11), *(buf + 10), *(buf +  9), *(buf +  8),
+            *(buf + 15), *(buf + 14), *(buf + 13), *(buf + 12));
         break;
     default:
         break;
