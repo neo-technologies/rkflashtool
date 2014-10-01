@@ -47,6 +47,7 @@ int _CRT_fmode = _O_BINARY;
 #define RKFT_MEM_INCR       0x80
 #define RKFT_OFF_INCR       (RKFT_BLOCKSIZE>>9)
 #define MAX_PARAM_LENGTH    (128*512-12) /* cf. MAX_LOADER_PARAM in rkloader */
+#define SDRAM_BASE_ADDRESS  0x60000000
 
 #define RKFT_CMD_TESTUNITREADY      0x80000600
 #define RKFT_CMD_READFLASHID        0x80000601
@@ -418,7 +419,7 @@ action:
             int sizeRead = size > RKFT_BLOCKSIZE ? RKFT_BLOCKSIZE : size;
             infocr("reading memory at offset 0x%08x size %x", offset, sizeRead);
 
-            send_cmd(RKFT_CMD_READSDRAM, offset-0x60000000, sizeRead);
+            send_cmd(RKFT_CMD_READSDRAM, offset - SDRAM_BASE_ADDRESS, sizeRead);
             recv_buf(sizeRead);
             recv_res();
 
@@ -439,7 +440,7 @@ action:
             }
             infocr("writing memory at offset 0x%08x size %x", offset, sizeRead);
 
-            send_cmd(RKFT_CMD_WRITESDRAM, offset-0x60000000, sizeRead);
+            send_cmd(RKFT_CMD_WRITESDRAM, offset - SDRAM_BASE_ADDRESS, sizeRead);
             send_buf(sizeRead);
             recv_res();
 
@@ -450,7 +451,7 @@ action:
         break;
     case 'B':   /* Exec RAM */
         info("booting kernel...\n");
-        send_exec(offset-0x60000000, size-0x60000000);
+        send_exec(offset - SDRAM_BASE_ADDRESS, size - SDRAM_BASE_ADDRESS);
         recv_res();
         break;
     case 'i':   /* Read IDB */
