@@ -109,6 +109,29 @@ static const struct t_pid {
     { 0, "" },
 };
 
+typedef struct {
+    uint32_t flash_size;
+    uint16_t block_size;
+    uint8_t page_size;
+    uint8_t ecc_bits;
+    uint8_t access_time;
+    uint8_t manufacturer_id;
+    uint8_t chip_select;
+} nand_info;
+
+static const char* const manufacturer[] = {   /* NAND Manufacturers */
+    "Samsung",
+    "Toshiba",
+    "Hynix",
+    "Infineon",
+    "Micron",
+    "Renesas",
+    "Intel",
+    "UNKNOWN", /* Reserved */
+    "SanDisk",
+};
+#define MAX_NAND_ID (sizeof manufacturer / sizeof(char *))
+
 static uint8_t cmd[31], res[13], buf[RKFT_BLOCKSIZE];
 static libusb_context *c;
 static libusb_device_handle *h = NULL;
@@ -133,6 +156,7 @@ static void usage(void) {
     fatal("usage:\n"
           "\trkflashtool b                   \treboot device\n"
           "\trkflashtool v                   \tread chip version\n"
+          "\trkflashtool n                   \tread NAND flash info\n"
           "\trkflashtool i offset nsectors >outfile \tread IDBlocks\n"
 //          "\trkflashtool j offset nsectors <infile  \twrite IDBlocks\n"
           "\trkflashtool m offset nbytes   >outfile \tread SDRAM\n"
@@ -228,6 +252,7 @@ int main(int argc, char **argv) {
         offset = strtoul(argv[0], NULL, 0);
         size   = strtoul(argv[1], NULL, 0);
         break;
+    case 'n':
     case 'v':
     case 'p':
         if (argc) usage();
@@ -494,6 +519,48 @@ action:
             buf[11], buf[10], buf[ 9], buf[ 8],
             buf[15], buf[14], buf[13], buf[12]);
         break;
+    case 'n':   /* Read NAND Flash Info */
+    {
+        send_cmd(RKFT_CMD_READFLASHID, 0, 0);
+        recv_buf(5);
+        recv_res();
+
+        info("Flash ID: %02x %02x %02x %02x %02x\n",
+            buf[0], buf[1], buf[2], buf[3], buf[4]);
+
+        send_cmd(RKFT_CMD_READFLASHINFO, 0, 0);
+        recv_buf(512);
+        recv_res();
+
+        nand_info *nand = (nand_info *) buf;
+        uint8_t id = nand->manufacturer_id,
+                cs = nand->chip_select;
+
+        info("Flash Info:\n"
+             "\tManufacturer: %s (%d)\n"
+             "\tFlash Size: %dMB\n"
+             "\tBlock Size: %dKB\n"
+             "\tPage Size: %dKB\n"
+             "\tECC Bits: %d\n"
+             "\tAccess Time: %d\n"
+             "\tFlash CS:%s%s%s%s\n",
+
+             /* Manufacturer */
+             id < MAX_NAND_ID ? manufacturer[id] : "Unknown",
+             id,
+
+             nand->flash_size >> 11, /* Flash Size */
+             nand->block_size >> 1,  /* Block Size */
+             nand->page_size  >> 1,  /* Page Size */
+             nand->ecc_bits,         /* ECC Bits */
+             nand->access_time,      /* Access Time */
+
+             /* Flash CS */
+             cs & 1 ? " <0>" : "",
+             cs & 2 ? " <1>" : "",
+             cs & 4 ? " <2>" : "",
+             cs & 8 ? " <3>" : "");
+    }
     default:
         break;
     }
