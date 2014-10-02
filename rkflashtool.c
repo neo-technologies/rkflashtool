@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 #include <libusb-1.0/libusb.h>
 
 /* hack to set binary mode for stdin / stdout on Windows */
@@ -40,6 +41,7 @@ int _CRT_fmode = _O_BINARY;
 #endif
 
 #include "version.h"
+#include "rkcrc.h"
 
 #define RKFT_BLOCKSIZE      0x4000      /* must be multiple of 512 */
 #define RKFT_IDB_BLOCKSIZE  0x210
@@ -169,6 +171,7 @@ static void usage(void) {
 //          "\trkflashtool f                 >outfile \tread fuses\n"
 //          "\trkflashtool g                 <infile  \twrite fuses\n"
           "\trkflashtool p >file             \tfetch parameters\n"
+          "\trkflashtool P <file             \twrite parameters\n"
           "\trkflashtool e partname          \terase flash (fill with 0xff)\n"
           "\trkflashtool e offset nsectors   \terase flash (fill with 0xff)\n"
          );
@@ -255,6 +258,7 @@ int main(int argc, char **argv) {
     case 'n':
     case 'v':
     case 'p':
+    case 'P':
         if (argc) usage();
         offset = 0;
         size   = 1024;
@@ -438,6 +442,40 @@ action:
             if (write(1, &buf[8], size) <= 0)
                 fatal("Write error! Disk full?\n");
         }
+        break;
+    case 'P':   /* Write parameters */
+        {
+            /* Header */
+            strncpy((char *)buf, "PARM", 4);
+
+            /* Content */
+            int sizeRead;
+            if ((sizeRead = read(0, buf + 8, RKFT_BLOCKSIZE - 8)) < 0) {
+                info("read error: %s\n", strerror(errno));
+                goto exit;
+            }
+
+            /* Length */
+            *(uint32_t *)(buf + 4) = sizeRead;
+
+            /* CRC */
+            uint32_t crc = 0;
+            RKCRC(crc, buf + 8, sizeRead);
+            PUT32LE(buf + 8 + sizeRead, crc);
+
+            /*
+             * The parameter file is written at 8 different offsets:
+             * 0x0000, 0x0400, 0x0800, 0x0C00, 0x1000, 0x1400, 0x1800, 0x1C00
+             */
+
+            for(offset = 0; offset < 0x2000; offset += 0x400) {
+                infocr("writing flash memory at offset 0x%08x", offset);
+                send_cmd(RKFT_CMD_WRITELBA, offset, RKFT_OFF_INCR);
+                send_buf(RKFT_BLOCKSIZE);
+                recv_res();
+            }
+        }
+        fprintf(stderr, "... Done!\n");
         break;
     case 'm':   /* Read RAM */
         while (size > 0) {
