@@ -355,8 +355,16 @@ int main(int argc, char **argv) {
         /* Search for '-' sign (if last partition) */
         char *minus = strrchr(mtdparts, '-');
         if (minus) {
-            size = UINT_MAX;
-            info("partition extends up to the end of NAND.\n");
+
+            /* Read size from NAND info */
+            send_cmd(RKFT_CMD_READFLASHINFO, 0, 0);
+            recv_buf(512);
+            recv_res();
+
+            nand_info *nand = (nand_info *) buf;
+            size = nand->flash_size - offset;
+
+            info("partition extends up to the end of NAND (size: 0x%08x).\n", size);
             goto action;
         }
 
