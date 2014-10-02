@@ -498,7 +498,7 @@ action:
     case 'e':   /* Erase flash */
         memset(buf, 0xff, RKFT_BLOCKSIZE);
         while (size > 0) {
-            info("erasing flash memory at offset 0x%08x\n", offset);
+            infocr("erasing flash memory at offset 0x%08x", offset);
 
             send_cmd(RKFT_CMD_WRITELBA, offset, RKFT_OFF_INCR);
             send_buf(RKFT_BLOCKSIZE);
@@ -507,6 +507,7 @@ action:
             offset += RKFT_OFF_INCR;
             size   -= RKFT_OFF_INCR;
         }
+        fprintf(stderr, "... Done!\n");
         break;
     case 'v':   /* Read Chip Version */
         send_cmd(RKFT_CMD_READCHIPINFO, 0, 0);
