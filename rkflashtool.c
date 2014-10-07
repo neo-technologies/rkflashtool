@@ -42,6 +42,7 @@ int _CRT_fmode = _O_BINARY;
 
 #include "version.h"
 #include "rkcrc.h"
+#include "rkflashtool.h"
 
 #define RKFT_BLOCKSIZE      0x4000      /* must be multiple of 512 */
 #define RKFT_IDB_BLOCKSIZE  0x210
@@ -157,6 +158,8 @@ static void info_and_fatal(const int s, const int cr, char *f, ...) {
 static void usage(void) {
     fatal("usage:\n"
           "\trkflashtool b                   \treboot device\n"
+          "\trkflashtool l <file             \tload DDR init (MASK ROM MODE)\n"
+          "\trkflashtool L <file             \tload USB loader (MASK ROM MODE)\n"
           "\trkflashtool v                   \tread chip version\n"
           "\trkflashtool n                   \tread NAND flash info\n"
           "\trkflashtool i offset nsectors >outfile \tread IDBlocks\n"
@@ -220,8 +223,11 @@ static void recv_buf(unsigned int s) {
 #define NEXT do { argc--;argv++; } while(0)
 
 int main(int argc, char **argv) {
+    struct libusb_device_descriptor desc;
     const struct t_pid *ppid = pidtab;
+    ssize_t nr;
     int offset = 0, size = 0;
+    uint16_t crc16;
     char action;
     char *partname = NULL;
 
@@ -234,6 +240,8 @@ int main(int argc, char **argv) {
 
     switch(action) {
     case 'b':
+    case 'l':
+    case 'L':
         if (argc) usage();
         break;
     case 'e':
@@ -296,6 +304,43 @@ int main(int argc, char **argv) {
     if (libusb_claim_interface(h, 0) < 0)
         fatal("cannot claim interface\n");
     info("interface claimed\n");
+
+    if (libusb_get_device_descriptor(libusb_get_device(h), &desc) != 0)
+        fatal("cannot get device descriptor\n");
+
+    if (desc.bcdUSB == 0x200)
+        info("MASK ROM MODE\n");
+
+    switch(action) {
+    case 'l':
+        info("load DDR init\n");
+        crc16 = 0xffff;
+        while ((nr = read(0, buf, 4096)) == 4096) {
+            crc16 = rkcrc16(crc16, buf, nr);
+            libusb_control_transfer(h, LIBUSB_REQUEST_TYPE_VENDOR, 12, 0, 1137, buf, nr, 0);
+        }
+        if (nr != -1) {
+            crc16 = rkcrc16(crc16, buf, nr);
+            buf[nr++] = crc16 >> 8;
+            buf[nr++] = crc16 & 0xff;
+            libusb_control_transfer(h, LIBUSB_REQUEST_TYPE_VENDOR, 12, 0, 1137, buf, nr, 0);
+        }
+        goto exit;
+    case 'L':
+        info("load USB loader\n");
+        crc16 = 0xffff;
+        while ((nr = read(0, buf, 4096)) == 4096) {
+            crc16 = rkcrc16(crc16, buf, nr);
+            libusb_control_transfer(h, LIBUSB_REQUEST_TYPE_VENDOR, 12, 0, 1138, buf, nr, 0);
+        }
+        if (nr != -1) {
+            crc16 = rkcrc16(crc16, buf, nr);
+            buf[nr++] = crc16 >> 8;
+            buf[nr++] = crc16 & 0xff;
+            libusb_control_transfer(h, LIBUSB_REQUEST_TYPE_VENDOR, 12, 0, 1138, buf, nr, 0);
+        }
+        goto exit;
+    }
 
     /* Initialize bootloader interface */
 
@@ -468,7 +513,7 @@ action:
 
             /* CRC */
             uint32_t crc = 0;
-            RKCRC(crc, buf + 8, sizeRead);
+            crc = rkcrc32(crc, buf + 8, sizeRead);
             PUT32LE(buf + 8 + sizeRead, crc);
 
             /*

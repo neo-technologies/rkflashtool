@@ -34,6 +34,7 @@
 #include <string.h>
 
 #include "rkcrc.h"
+#include "rkflashtool.h"
 #include "version.h"
 
 #ifndef _WIN32
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]) {
     }
 
     while ((nr = read(in, buf, sizeof(buf))) > 0) {
-        RKCRC(crc, buf, nr);
+        crc = rkcrc32(crc, buf, nr);
         if(write(out, buf, nr) != nr)
           fatal("%s: write error\n", argv[1]);
     }
