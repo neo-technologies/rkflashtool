@@ -487,10 +487,19 @@ action:
             send_cmd(RKFT_CMD_READLBA, offset, RKFT_OFF_INCR);
             recv_buf(RKFT_BLOCKSIZE);
             recv_res();
+
+            /* Check size */
             size = *p;
             info("size:  0x%08x\n", size);
             if (size < 0 || size > MAX_PARAM_LENGTH)
                 fatal("Bad parameter length!\n");
+
+            /* Check CRC */
+            uint32_t crc_buf = *(uint32_t *)(buf + 8 + size),
+                     crc = 0;
+            crc = rkcrc32(crc, buf + 8, size);
+            if (crc_buf != crc)
+              fatal("bad CRC! (%#x, should be %#x)\n", crc_buf, crc);
 
             if (write(1, &buf[8], size) <= 0)
                 fatal("Write error! Disk full?\n");
