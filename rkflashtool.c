@@ -573,7 +573,7 @@ action:
     case 'i':   /* Read IDB */
         while (size > 0) {
             int sizeRead = size > RKFT_IDB_INCR ? RKFT_IDB_INCR : size;
-            info("reading IDB flash memory at offset 0x%08x\n", offset);
+            infocr("reading IDB flash memory at offset 0x%08x", offset);
 
             send_cmd(RKFT_CMD_READSECTOR, offset, sizeRead);
             recv_buf(RKFT_IDB_BLOCKSIZE * sizeRead);
@@ -585,6 +585,7 @@ action:
             offset += sizeRead;
             size -= sizeRead;
         }
+        fprintf(stderr, "... Done!\n");
         break;
     case 'e':   /* Erase flash */
         memset(buf, 0xff, RKFT_BLOCKSIZE);
