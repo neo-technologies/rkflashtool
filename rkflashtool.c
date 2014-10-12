@@ -157,7 +157,7 @@ static void info_and_fatal(const int s, const int cr, char *f, ...) {
 
 static void usage(void) {
     fatal("usage:\n"
-          "\trkflashtool b                   \treboot device\n"
+          "\trkflashtool b [flag]            \treboot device\n"
           "\trkflashtool l <file             \tload DDR init (MASK ROM MODE)\n"
           "\trkflashtool L <file             \tload USB loader (MASK ROM MODE)\n"
           "\trkflashtool v                   \tread chip version\n"
@@ -190,6 +190,19 @@ static void send_exec(uint32_t krnl_addr, uint32_t parm_addr) {
     if (krnl_addr)  SETBE32(cmd+17, krnl_addr);
     if (parm_addr)  SETBE32(cmd+22, parm_addr);
                     SETBE32(cmd+12, RKFT_CMD_EXECUTESDRAM);
+
+    libusb_bulk_transfer(h, 2|LIBUSB_ENDPOINT_OUT, cmd, sizeof(cmd), &tmp, 0);
+}
+
+static void send_reset(uint8_t flag) {
+    long int r = random();
+
+    memset(cmd, 0 , 31);
+    memcpy(cmd, "USBC", 4);
+
+    SETBE32(cmd+4, r);
+    SETBE32(cmd+12, RKFT_CMD_RESETDEVICE);
+    cmd[16] = flag;
 
     libusb_bulk_transfer(h, 2|LIBUSB_ENDPOINT_OUT, cmd, sizeof(cmd), &tmp, 0);
 }
@@ -228,6 +241,7 @@ int main(int argc, char **argv) {
     ssize_t nr;
     int offset = 0, size = 0;
     uint16_t crc16;
+    uint8_t flag = 0;
     char action;
     char *partname = NULL;
 
@@ -240,6 +254,10 @@ int main(int argc, char **argv) {
 
     switch(action) {
     case 'b':
+        if (argc > 1) usage();
+        else if (argc == 1)
+            flag = strtoul(argv[0], NULL, 0);
+        break;
     case 'l':
     case 'L':
         if (argc) usage();
@@ -440,7 +458,7 @@ action:
     switch(action) {
     case 'b':   /* Reboot device */
         info("rebooting device...\n");
-        send_cmd(RKFT_CMD_RESETDEVICE, 0, 0);
+        send_reset(flag);
         recv_res();
         break;
     case 'r':   /* Read FLASH */
