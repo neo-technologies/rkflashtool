@@ -5,6 +5,7 @@ LD	= $(CC)
 CFLAGS	= -O2 -W -Wall
 LDFLAGS	= -s
 LIBS	= -lusb-1.0
+PREFIX ?= usr/local
 
 ifdef LIBUSB
 CFLAGS	+= -I$(LIBUSB)/include
@@ -41,15 +42,23 @@ endif
 endif
 
 PROGS	= $(patsubst %.c,%$(BINEXT), $(wildcard *.c))
+SCRIPTS = rkunsign rkparametersblock rkmisc rkpad rkparameters release.sh fixversion.sh
 
-
-all: $(PROGS)
+all: $(PROGS) $(SCRIPTS)
 
 %$(BINEXT): %.c $(RESFILE)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LIBS)
 
+install: $(PROGS) $(SCRIPTS)
+	install -d -m 0755 $(DESTDIR)/$(PREFIX)/bin
+	install -m 0755 $(PROGS) $(DESTDIR)/$(PREFIX)/bin
+	install -m 0755 $(SCRIPTS) $(DESTDIR)/$(PREFIX)/bin
+
 clean:
 	$(RM) $(PROGS) *.res *.rc *.zip *.tar.gz *.tar.bz2 *.tar.xz *~ *.exe
+
+uninstall:
+	cd $(DESTDIR)/$(PREFIX)/bin && $(RM) -f $(PROGS) $(SCRIPTS)
 
 %.res: %.rc
 	$(RC) $(RCFLAGS) $< -o $@
