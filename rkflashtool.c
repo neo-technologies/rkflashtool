@@ -1,5 +1,5 @@
 /* rkflashtool - for RockChip based devices.
- *               (RK2808, RK2818, RK2918, RK2928, RK3066, RK3068 and RK3188)
+ *               (RK2808, RK2818, RK2918, RK2928, RK3066, RK3068, RK3126 and RK3188)
  *
  * Copyright (C) 2010-2014 by Ivo van Poorten, Fukaumi Naoki, Guenter Knauf,
  *                            Ulrich Prinz, Steve Wilson
@@ -108,6 +108,7 @@ static const struct t_pid {
     { 0x300b, "RK3168" },
     { 0x310a, "RK3066B" },
     { 0x310b, "RK3188" },
+    { 0x310c, "RK3126" },
     { 0x320a, "RK3288" },
     { 0, "" },
 };
