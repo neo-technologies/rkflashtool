@@ -42,7 +42,7 @@ endif
 endif
 
 PROGS	= $(patsubst %.c,%$(BINEXT), $(wildcard *.c))
-SCRIPTS = rkunsign rkparametersblock rkmisc rkpad rkparameters release.sh fixversion.sh
+SCRIPTS = rkunsign rkparametersblock rkmisc rkpad rkparameters
 
 all: $(PROGS) $(SCRIPTS)
 
