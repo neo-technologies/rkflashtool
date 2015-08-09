@@ -3,7 +3,7 @@
 CC	= $(CROSSPREFIX)gcc
 LD	= $(CC)
 CFLAGS	= -O2 -W -Wall
-LDFLAGS	= -s
+LDFLAGS	=
 LIBS	= -lusb-1.0
 PREFIX ?= usr/local
 
@@ -14,14 +14,12 @@ endif
 
 MACH	= $(shell $(CC) -dumpmachine)
 ifeq ($(findstring mingw,$(MACH)),mingw)
-LDFLAGS	+= -static -lmman
+LDFLAGS	+= -s -static -lmman
 USE_RES	= 1
 endif
 ifeq ($(findstring cygwin,$(MACH)),cygwin)
+LDFLAGS	+= -s
 USE_RES	= 1
-endif
-ifeq ($(findstring darwin,$(MACH)),darwin)
-LDFLAGS =
 endif
 
 ifeq ($(USE_RES),1)
