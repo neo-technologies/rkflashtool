@@ -32,7 +32,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include <libusb-1.0/libusb.h>
+#include <libusb.h>
 
 /* hack to set binary mode for stdin / stdout on Windows */
 #ifdef _WIN32
