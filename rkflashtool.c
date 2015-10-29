@@ -45,6 +45,7 @@ int _CRT_fmode = _O_BINARY;
 #include "rkflashtool.h"
 
 #define RKFT_BLOCKSIZE      0x4000      /* must be multiple of 512 */
+#define RKFT_IDB_DATASIZE   0x200
 #define RKFT_IDB_BLOCKSIZE  0x210
 #define RKFT_IDB_INCR       0x20
 #define RKFT_MEM_INCR       0x80
@@ -139,6 +140,7 @@ static const char* const manufacturer[] = {   /* NAND Manufacturers */
 #define MAX_NAND_ID (sizeof manufacturer / sizeof(char *))
 
 static uint8_t cmd[31], res[13], buf[RKFT_BLOCKSIZE];
+static uint8_t ibuf[RKFT_IDB_BLOCKSIZE];
 static libusb_context *c;
 static libusb_device_handle *h = NULL;
 static int tmp;
@@ -166,7 +168,7 @@ static void usage(void) {
           "\trkflashtool v                   \tread chip version\n"
           "\trkflashtool n                   \tread NAND flash info\n"
           "\trkflashtool i offset nsectors >outfile \tread IDBlocks\n"
-//          "\trkflashtool j offset nsectors <infile  \twrite IDBlocks\n"
+          "\trkflashtool j offset nsectors <infile  \twrite IDBlocks\n"
           "\trkflashtool m offset nbytes   >outfile \tread SDRAM\n"
           "\trkflashtool M offset nbytes   <infile  \twrite SDRAM\n"
           "\trkflashtool B krnl_addr parm_addr      \texec SDRAM\n"
@@ -280,6 +282,7 @@ int main(int argc, char **argv) {
     case 'M':
     case 'B':
     case 'i':
+    case 'j':
         if (argc != 2) usage();
         offset = strtoul(argv[0], NULL, 0);
         size   = strtoul(argv[1], NULL, 0);
@@ -614,6 +617,25 @@ action:
 
             offset += sizeRead;
             size -= sizeRead;
+        }
+        fprintf(stderr, "... Done!\n");
+        break;
+    case 'j':   /* write IDB */
+        while (size > 0) {
+            infocr("writing IDB flash memory at offset 0x%08x", offset);
+
+            memset(ibuf, RKFT_IDB_BLOCKSIZE, 0xff);
+            if (read(0, ibuf, RKFT_IDB_DATASIZE) <= 0) {
+                fprintf(stderr, "... Done!\n");
+                info("premature end-of-file reached.\n");
+                goto exit;
+            }
+
+            send_cmd(RKFT_CMD_WRITESECTOR, offset, 1);
+            libusb_bulk_transfer(h, 2|LIBUSB_ENDPOINT_OUT, ibuf, RKFT_IDB_BLOCKSIZE, &tmp, 0);
+            recv_res();
+            offset += 1;
+            size -= 1;
         }
         fprintf(stderr, "... Done!\n");
         break;
