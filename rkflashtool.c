@@ -504,7 +504,7 @@ action:
         }
         fprintf(stderr, "... Done!\n");
         break;
-    case 'p':   /* Retreive parameters */
+    case 'p':   /* Retrieve parameters */
         {
             uint32_t *p = (uint32_t*)buf+1;
 
