@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2010 Fukaumi Naoki
  * Copyright (c) 2013 Ivo van Poorten
+ * Copyright (c) 2020 Hajo Noerenberg
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -170,6 +171,47 @@ static void unpack_rkfw(void) {
 
 }
 
+static void unpack_rkfp(void) {
+    uint8_t *p;
+    unsigned int pss, peo, pbeo, pes, pec;
+    const char *path;
+    int count;
+
+    info("RKFP signature detected\n");
+    info("version: %d.%d.%d\n", buf[15], buf[14], (buf[13]<<8)+buf[12]);
+    info("date: %d-%02d-%02d %02d:%02d:%02d\n",
+            (buf[0x05]<<8)+buf[0x04], buf[0x06], buf[0x07],
+            buf[0x08], buf[0x09], buf[0x0a]);
+
+    pss = GET32LE(buf+0x10);
+    peo = GET32LE(buf+0x14);
+    pbeo = GET32LE(buf+0x18);
+    pes = GET32LE(buf+0x1c);
+    pec = GET32LE(buf+0x20);
+
+    info("partition sector size: %d bytes\n", pss);
+    info("partition entry offset: %d sectors, backup partition entry offset: %d sectors\n", peo, pbeo);
+    info("partition entry size: %d bytes\n", pes);
+    info("partition entry count: %d\n", pec);
+    info("fw size: %d\n", GET32LE(buf+0x24));
+    info("partition entry crc: %08x\n", GET32LE(buf+504));
+    info("header crc: %08x\n", GET32LE(buf+508));
+
+    for (count = 1; count <= GET32LE(buf+0x20); count++) {
+
+        p = &buf[pss*peo+(count-1)*pes];
+        path = (const char *)p;
+        ioff  = GET32LE(p+36);
+        isize = GET32LE(p+40);
+        fsize = GET32LE(p+44);
+
+        info("%08x-%08x %-26s (type: %02x) (property: %02x) (size: %d)\n",
+            ioff*pss, (ioff + isize)*pss, path, GET32LE(p+32), GET32LE(p+48), fsize);
+        write_file(path, buf+(ioff*pss), fsize);
+    }
+
+}
+
 int main(int argc, char *argv[]) {
 
     if (argc != 2)
@@ -195,6 +237,7 @@ int main(int argc, char *argv[]) {
 
          if (!memcmp(buf, "RKAF", 4)) unpack_rkaf();
     else if (!memcmp(buf, "RKFW", 4)) unpack_rkfw();
+    else if (!memcmp(buf, "RKFP", 4)) unpack_rkfp();
     else fatal("%s: invalid signature\n", argv[1]);
 
     printf("unpacked\n");
